@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style media="screen">
+            body {
+                font-family: monospace;
+            }
+            .block {
+                width: 80px;
+                height: 80px;
+                background-color: #ccc;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 2em;
+                color: #0006;
+                transition: background-color .2s ease-out;
+            }
+            pre.UI {
+                position: absolute;
+                top: 0;
+                z-index: 1;
+            }
+        </style>
+    </head>
+    <body>
+        <pre class="UI"></pre>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <script type="module">
+
+            import Animator from './src/Animator/index.js'
+            import Sprite from './Sprite.js'
+            import ots from './ots.js'
+
+            for (let [index, block] of document.querySelectorAll('.block').entries())
+                block.innerHTML = index
+
+            const B = index => Sprite.get(document.querySelectorAll('.block')[index])
+
+            Object.assign(window, {
+
+                B,
+                Animator,
+                Sprite,
+
+            })
+
+            Animator.onUpdate(() => {
+
+                document.querySelector('.UI').innerHTML = `Animator.frame: #${Animator.frame} Animator.time: ${Animator.time.toFixed(2)}s\n` +
+
+                `Animator.tweenKeyMap.size: ${Animator.tweenKeyMap.size}\n` + [...Animator.tweenKeyMap].map(([target, key, tween]) => (
+
+                    `tween#${tween.id} ` + target.toString() + ' ' + key
+
+
+                )).join('\n')
+
+            })
+
+
+
+            Animator.tween(B(0), 'x', { to: 300 })
+
+            Animator.tween(B(1), 'x', { to: 300, ease: 'out,2',
+
+                onStart: () => B(1).backgroundColor = 'red',
+                onComplete: () => B(1).backgroundColor = null,
+                onUpdate: ({ progress }) => B(1).innerHTML = `${(progress * 100).toFixed(0)}%`,
+            })
+
+            Animator.tween(B(2), 'x', { to: 300, ease: 'out,4' })
+
+            Animator.tween(B(3), 'x', { to: 300, ease: 'inout,2' })
+            Animator.tween(B(4), 'x', { to: 300, ease: 'inout,3' })
+            Animator.tween(B(5), 'x', { to: 300, ease: 'inout,4' })
+
+            Animator.tween(B(6), 'x', { from: 300, ease: 'out,4' })
+            Animator.tween(B(7), 'x,rotation', { from: [300, 180], ease: 'out,4', onThrough:[[50, ({target}) => target.backgroundColor = 'red']] })
+
+            Animator.tween(B(8), 'x', { to: 300,
+
+                onThrough: [100, ({ target }) => Animator.tween(target, 'rotation', { to: 180, duration: 1.4, ease: 'inout,8,1/4' })],
+
+            })
+
+            // override
+            Animator.tween(B(9), 'x', { to: 300, duration: 4,
+
+                onThrough: [100, ({ target }) => Animator.tween(target, 'x', { to: 0, ease: 'inout,2,1/4', duration: .5,
+                    onStart: ({ target }) => target.backgroundColor = 'red',
+                })],
+
+            })
+
+            let sinOut = (x, amplitude, period = 3, power = 1.5) => amplitude * Math.sin(period * 2 * Math.PI * x) * (1 - x) ** power
+
+            Animator.tween(B(10), 'x', { override: x => 300 + sinOut(x, 100) })
+            Animator.tween(B(11), 'x', { override: x => 300 + sinOut(x, 100, 6, 3), duration: 2 })
+
+            Animator.tween(B(12), 'x,rotation', { to:[300, 360], ease: 'inout,4,1/4' })
+            Animator.tween(B(12), 'y', { override: x => sinOut(x, 40) })
+
+            console.log(Animator.getTweensOf(B(12)))
+            console.log(Animator.getTweensOf(B(12), 'y'))
+
+            Animator.tween(B(13), 'rotation,x', { to:[360, 300], ease: 'inout,4,1/4', onThrough:[,[100, ({ target }) => Animator.cancelTweensOf(target)]] })
+            Animator.tween(B(13), 'y', { override: x => sinOut(x, 40) })
+
+            Animator.tween(B(14), 'rotation,x', { to:[360, 300], ease: 'inout,4,1/4', onThrough:[,[100, ({ target }) => Animator.cancelTweensOf(target, 'rotation,x')]] })
+            Animator.tween(B(14), 'y', { override: x => sinOut(x, 40) })
+
+        </script>
+    </body>
+</html>

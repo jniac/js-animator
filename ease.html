@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style media="screen">
+            body {
+                font-family: monospace;
+            }
+            .block {
+                width: 120px;
+                height: 120px;
+                background-color: #ccc;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 2em;
+                color: #0006;
+            }
+            pre.UI {
+                position: absolute;
+                top: 0;
+                z-index: 1;
+            }
+        </style>
+    </head>
+    <body>
+        <pre class="UI"></pre>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <script type="module">
+
+            import Animator from './src/Animator/index.js'
+            import Sprite from './Sprite.js'
+            import ots from './ots.js'
+
+            for (let [index, block] of document.querySelectorAll('.block').entries())
+                block.innerHTML = index
+
+            const B = index => Sprite.get(document.querySelectorAll('.block')[index])
+
+            Animator.ease(B(0), 'x', 300)
+            Animator.ease(B(1), 'x', 300, { decay: .0001 }) // option
+
+            Animator.ease(B(2), 'x', 300)
+            Animator.ease(B(2), 'scale', .5)
+
+            Animator.ease(B(3), 'x', 300)
+            Animator.ease(B(3), 'x', 500, { decay: .0001 }) // auto-overide
+
+            Animator.ease(B(4), 'x', 300, {
+
+                onThrough: [200, () => Animator.forceCompleteEase(B(4), 'x')],
+                onStart: () => console.log('start', performance.now()),
+                onComplete: e => console.log('complete', performance.now(), e),
+
+            })
+
+            Animator.ease(B(5), 'x', 300, {
+
+                onThrough: [200, () => {
+
+                    Animator.ease(B(5), 'x', 0, { decay: .1 })
+
+                }]
+
+            })
+
+            Animator.onUpdate(() => {
+
+                document.querySelector('.UI').innerHTML = `Animator.frame: #${Animator.frame} Animator.time: ${Animator.time.toFixed(2)}s\n` +
+
+                `Animator.easeKeyMap.size: ${Animator.easeKeyMap.size}\n` + [...Animator.easeKeyMap].map(([target, key, values]) => (
+
+                    target.toString() + ' ' + key + ' ' + ots(values, {depth: 1})
+
+
+                )).join('\n')
+
+            })
+
+            // onTimeout
+            Animator.onTimeout(2, () => console.log('Animator.onTimeout', Animator.time))
+
+            // onFrameout
+            Animator.onFrameout(100, () => console.log('Animator.onFrameout', Animator.frame))
+
+            let count = 0
+
+            Animator.during(0, ({ progress, time }) => {
+
+                console.log('zero!', { progress, time })
+
+            }, {
+                onStart: () => console.log('zero start!'),
+                onComplete: () => console.log('zero complete!'),
+            })
+
+            // during with delay
+            Animator.during(.5, ({ progress, time }) => {
+
+                console.log(++count, ots({ progress, time }, { toFixed: 3 }))
+
+            }, { delay: .75 })
+
+            // during with delay and break
+            Animator.during(.5, ({ progress, time }) => {
+
+                console.log('#2', ots({ progress, time }, { toFixed: 3 }))
+
+                return progress < .5
+
+            }, { delay: .75 })
+
+            Object.assign(window, {
+
+                B,
+                Animator,
+                Sprite,
+
+            })
+
+
+
+        </script>
+    </body>
+</html>

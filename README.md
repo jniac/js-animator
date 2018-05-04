@@ -2,6 +2,7 @@
 for animations of js properties (kind of TweenMax)
 
 ```javascript
+let obj = { x: 0, rotation: 0 }
 
 Animator.tween(obj, 'x', { to: 300 })
 Animator.tween(obj, 'x', { from: 100, ease: 'out' })

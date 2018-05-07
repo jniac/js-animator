@@ -3,35 +3,17 @@
     <head>
         <meta charset="utf-8">
         <title></title>
-        <style media="screen">
-            body {
-                font-family: monospace;
-            }
-            .block {
-                width: 80px;
-                height: 80px;
-                background-color: #ccc;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-size: 2em;
-                color: #0006;
-                transition: background-color .5s ease-out;
-                user-select: none;
-            }
-            .block.click {
-                background-color: #39f;
-                cursor: pointer;
-            }
-            pre.UI {
-                position: absolute;
-                top: 0;
-                z-index: 1;
-            }
-        </style>
+        <link rel="stylesheet" href="main.css">
     </head>
     <body>
-        <pre class="UI"></pre>
+        <div class="UI">
+            <div class="menu">
+                <span class='button playOnDown'>Play on down</span>
+                <span class='button oneFrame'>One frame</span>
+                <span class='button togglePaused'>Toggle paused</span>
+            </div>
+            <pre></pre>
+        </div>
         <div class="block"></div>
         <div class="block"></div>
         <div class="block"></div>
@@ -67,6 +49,11 @@
 
             }
 
+            document.querySelector('.UI .button.playOnDown').onmousedown = () => Animator.paused = false
+            document.querySelector('.UI .button.playOnDown').onmouseup = () => Animator.paused = true
+            document.querySelector('.UI .button.oneFrame').onmouseup = () => Animator.updateFrame()
+            document.querySelector('.UI .button.togglePaused').onmouseup = () => Animator.paused = !Animator.paused
+
             Object.assign(window, {
 
                 B,
@@ -78,7 +65,7 @@
 
             Animator.onUpdate(() => {
 
-                document.querySelector('.UI').innerHTML = `Animator.frame: #${Animator.frame} Animator.time: ${Animator.time.toFixed(2)}s\n` +
+                document.querySelector('.UI pre').innerHTML = `Animator.frame: #${Animator.frame} Animator.time: ${Animator.time.toFixed(2)}s\n` +
 
                 `Animator.tweenKeyMap.size: ${Animator.tweenKeyMap.size}\n\n` + [...Animator.tweenKeyMap].map(([target, key, tween]) => (
 
@@ -112,11 +99,34 @@
             B(5).onclick = () => Animator.tween(B(5), 'x', { to: B(5).x > 150 ? 0 : 300, ease: 'inout,4' })
 
             Animator.tween(B(6), 'x', { from: 300, ease: 'out,4' })
-            Animator.tween(B(7), 'x,rotation', { from: [300, 180], ease: 'out,4', onThrough:[[50, ({target}) => target.backgroundColor = 'red']] })
+            Animator.tween(B(7), 'x,rotation', { from: [300, 180], ease: 'out,4', onThrough:[[
+
+                200, ({target}) => target.backgroundColor = 'red',
+                50, ({target}) => target.backgroundColor = '#0c9',
+
+            ]] })
 
             Animator.tween(B(8), 'x', { to: 300,
 
-                onThrough: [100, ({ target }) => Animator.tween(target, 'rotation', { to: 180, duration: 1.4, ease: 'inout,8,1/4' })],
+                duration: 2,
+
+                onThrough: [
+
+                    50, ({ target }) => {
+
+                        target.backgroundColor = 'red'
+                        Animator.tween(target, 'rotation', { to: 180, duration: 1.4, ease: 'inout,8,1/4' })
+
+                    },
+
+                    200, ({ target }) => {
+
+                        target.backgroundColor = '#0c9'
+                        Animator.tween(target, 'rotation', { to: 360, duration: 1.4, ease: 'inout,8,1/4' })
+
+                    },
+
+                ],
 
             })
 
@@ -145,6 +155,8 @@
 
             Animator.tween(B(14), 'rotation,x', { to:[360, 300], ease: 'inout,4,1/4', onThrough:[,[100, ({ target }) => Animator.cancelTweensOf(target, 'rotation,x')]] })
             Animator.tween(B(14), 'y', { override: x => sinOut(x, 40) })
+
+            Animator.tween(B(15), 'x', { to: 300, delay: 5, duration: 30 })
 
         </script>
     </body>

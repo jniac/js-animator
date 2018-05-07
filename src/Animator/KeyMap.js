@@ -97,14 +97,49 @@ export default class KeyMap {
 
     }
 
-    *values() {
+    entries(target = null, key = null) {
 
-        for (let [target, dict] of this.map) {
+        let entries = []
 
-            for (let key in dict)
-                yield dict[key]
+    	for (let [currentTarget, dict] of this.map) {
+
+    		if (!target || target === currentTarget) {
+
+                for (let currentKey in dict) {
+
+    				if (!key || key === currentKey)
+                        entries.push([currentTarget, currentKey, dict[currentKey]])
+
+    			}
+
+    		}
+
+    	}
+
+    	return entries
+
+    }
+
+    values(target = null, key = null) {
+
+        let values = []
+
+        for (let [currentTarget, dict] of this.map) {
+
+            if (!target || target === currentTarget) {
+
+                for (let currentKey in dict) {
+
+                    if (!key || key === currentKey)
+                        values.push(dict[currentKey])
+
+                }
+
+            }
 
         }
+
+        return values
 
     }
 

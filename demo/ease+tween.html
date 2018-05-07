@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <link rel="stylesheet" href="main.css">
+    </head>
+    <body>
+        <div class="UI">
+            <div class="menu">
+                <span class='button playOnDown'>Play on down</span>
+                <span class='button oneFrame'>One frame</span>
+                <span class='button togglePaused'>Toggle paused</span>
+            </div>
+            <pre></pre>
+        </div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <script type="module">
+
+            import Animator from '../src/Animator/index.js'
+            import Sprite from './Sprite.js'
+            import ots from './ots.js'
+
+            for (let [index, block] of document.querySelectorAll('.block').entries())
+                block.innerHTML = index
+
+            const B = index => Sprite.get(document.querySelectorAll('.block')[index])
+
+            Object.assign(window, {
+
+                B,
+                Animator,
+                Sprite,
+
+            })
+
+            Animator.onUpdate(() => {
+
+                document.querySelector('.UI pre').innerHTML = `Animator.frame: #${Animator.frame} Animator.time: ${Animator.time.toFixed(2)}s\n\n` +
+                    `Animator.easeKeyMap.size: ${Animator.easeKeyMap.size}\n` + [...Animator.easeKeyMap.values()].map((
+                        ({ key, value, delta, epsilon }) => key + ' ' + ots({ value, delta, epsilon })
+                    )).join('\n') + '\n\n' +
+                    `Animator.tweenKeyMap.size: ${Animator.tweenKeyMap.size}\n` + [...Animator.tweenKeyMap.values()].map(tween => ots(tween, 0)).join('\n') + '\n\n'
+
+            })
+
+            document.querySelector('.UI .button.playOnDown').onmousedown = () => Animator.paused = false
+            document.querySelector('.UI .button.playOnDown').onmouseup = () => Animator.paused = true
+            document.querySelector('.UI .button.oneFrame').onmouseup = () => Animator.updateFrame()
+            document.querySelector('.UI .button.togglePaused').onmouseup = () => Animator.paused = !Animator.paused
+
+
+
+
+
+
+            Animator.ease(B(0), 'x', 300)
+
+            // tween will override ease ...
+            Animator.ease(B(1), 'x', 300, {
+
+                onStart: ({ target }) => target.backgroundColor = '#f30',
+
+                onThrough: [200, ({ target }) => (
+
+                    Animator.tween(target, 'x', { to: 500, ease: 'out,3',
+                        onStart: ({ target }) => target.backgroundColor = '#06f',
+                        onComplete: ({ target }) => target.backgroundColor = null,
+                        onThrough: [400, () => Animator.paused = true]
+                    })
+
+                )],
+
+            })
+
+            // ... but only easings with the same key
+            Animator.ease(B(1), 'rotation', 180)
+
+
+
+            // ease will override tween ...
+            Animator.tween(B(2), 'x', { to: 300,
+
+                onStart: ({ target }) => target.backgroundColor = '#06f',
+
+                onThrough: [100, ({ target }) => (
+
+                    Animator.ease(target, 'x', 500, {
+
+                        onStart: ({ target }) => target.backgroundColor = '#f30',
+                        onComplete: ({ target }) => target.backgroundColor = null,
+
+                    })
+
+                )],
+
+            })
+
+            // ... but only tweens with the same key
+            Animator.tween(B(2), 'rotation', { to: 180 })
+
+            Animator.updateFrame()
+
+
+        </script>
+    </body>
+</html>

@@ -1,11 +1,45 @@
 import KeyMap from './KeyMap.js'
+import Stack from './Stack.js'
 
-let updateArray = []
+// let updateArray = []
 
 let deltaTime = 1 / 60
 let frame = 0
 let time = 0
 let paused = false
+
+// function updateFrame() {
+//
+// 	let tmp = updateArray
+// 	updateArray = []
+// 	updateArray = tmp.filter(listener => {
+//
+// 		if (frame % (1 + listener.skipFrames))
+// 			return true
+//
+// 		return listener.callback.apply(listener.thisArg) !== false
+//
+// 	}).concat(updateArray)
+//
+// 	frame++
+// 	time += deltaTime
+//
+// }
+
+let internalUpdateStack = new Stack()
+let externalUpdateStack = new Stack()
+
+Object.assign(window, { internalUpdateStack })
+
+function updateFrame() {
+
+	internalUpdateStack.update()
+	externalUpdateStack.update()
+
+	frame++
+	time += deltaTime
+
+}
 
 function update() {
 
@@ -14,36 +48,13 @@ function update() {
 	if (paused)
 		return
 
-	let tmp = updateArray
-	updateArray = []
-	updateArray = tmp.filter(listener => {
-
-		if (frame % (1 + listener.skipFrames))
-			return true
-
-		return listener.callback.apply(listener.thisArg) !== false
-
-	}).concat(updateArray)
-
-	frame++
-	time += deltaTime
+	updateFrame()
 
 }
 
+function onUpdate(callback, options) {
 
-
-function onUpdate(callback, { thisArg = null, skipFrames = 0 } = {}) {
-
-	if (!callback)
-		return
-
-	updateArray.push({
-
-		callback,
-		thisArg,
-		skipFrames,
-
-	})
+	externalUpdateStack.add(callback, options)
 
 }
 
@@ -51,7 +62,7 @@ function onTimeout(delay, callback) {
 
 	let t = time + delay
 
-	Animator.onUpdate(() => {
+	externalUpdateStack.add(() => {
 
 		if (time >= t)
 			callback()
@@ -66,7 +77,7 @@ function onFrameout(count, callback) {
 
 	let f = frame + count
 
-	Animator.onUpdate(() => {
+	externalUpdateStack.add(() => {
 
 		if (frame >= f)
 			callback()
@@ -95,7 +106,7 @@ function during(duration, callback, { delay = 0, onStart = null, onComplete = nu
 
 	let progress, time = -delay
 
-	Animator.onUpdate(() => {
+	externalUpdateStack.add(() => {
 
 		time += deltaTime
 
@@ -133,31 +144,37 @@ let easeKeyMap = new KeyMap()
 
 function ease(target, key, targetValue, options = {}) {
 
+	cancelTweensOf(target, key)
+
 	let { epsilon = .001, autoEpsilon = true } = options
 
 	if (autoEpsilon)
 		epsilon = Math.max(epsilon, Math.abs(targetValue - target[key]) * epsilon)
 
+	let ease = Object.assign(options, { target, key, targetValue, epsilon })
+
     if (easeKeyMap.has(target, key)) {
 
-        easeKeyMap.set(target, key, Object.assign({ targetValue, epsilon }, options))
+        easeKeyMap.assign(target, key, ease)
 
         return
 
     }
 
-    easeKeyMap.set(target, key, Object.assign({ targetValue, epsilon }, options))
+    easeKeyMap.set(target, key, ease)
 
 	let { delay = 0 } = options
 
 	let time = -delay, frame = 0
 
-    Animator.onUpdate(() => {
+    internalUpdateStack.add(() => {
 
 		time += deltaTime
 
         if (time < 0)
             return true
+
+		let ease = easeKeyMap.get(target, key)
 
         let {
 
@@ -171,7 +188,7 @@ function ease(target, key, targetValue, options = {}) {
 			canceled = false,
 			forceComplete = false,
 
-		} = easeKeyMap.get(target, key)
+		} = ease
 
         if (canceled) {
 
@@ -203,26 +220,30 @@ function ease(target, key, targetValue, options = {}) {
 
 		target[key] = value
 
+		Object.assign(ease, { value, delta, previous, time, frame })
+
 		if (onStart && time - deltaTime <= 0)
-			onStart({ target, key, value, delta, previous, time, frame })
+			onStart(ease)
 
 		if (onUpdate)
-			onUpdate({ target, key, value, delta, previous, time, frame })
+			onUpdate(ease)
 
 		if (onThrough) {
 
-			let [threshold, callback] = onThrough
+			for (let i = 0, n = onThrough.length; i < n; i += 2) {
 
-			if (value >= threshold && previous < threshold || value <= threshold && previous > threshold) {
+				let threshold = onThrough[i]
+				let callback = onThrough[i + 1]
 
-				callback({ target, key, value, delta, previous, time, frame })
+				if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
+					callback(ease)
 
 			}
 
 		}
 
 		if (onComplete && complete)
-			onComplete({ target, key, value, delta, previous, time, frame })
+			onComplete(ease)
 
         if (complete) {
 
@@ -240,17 +261,23 @@ function ease(target, key, targetValue, options = {}) {
 
 }
 
-function cancelEase(target, key) {
+function getEasingsOf(target, key = null) {
 
-	if (easeKeyMap.has(target, key))
-		easeKeyMap.assign(target, key, { canceled: true })
+	return easeKeyMap.values(target, key)
 
 }
 
-function forceCompleteEase(target, key) {
+function cancelEasingsOf(target, key = null) {
 
-	if (easeKeyMap.has(target, key))
-		easeKeyMap.assign(target, key, { forceComplete: true })
+	for (let ease of easeKeyMap.values(target, key))
+		ease.canceled = true
+
+}
+
+function forceCompleteEasingsOf(target, key = null) {
+
+	for (let ease of easeKeyMap.values(target, key))
+		ease.forceComplete = true
 
 }
 
@@ -268,6 +295,8 @@ let tweenKeyMap = new KeyMap()
 
 function tween(target, key, params = {}) {
 
+	cancelEasingsOf(target, key)
+
 	if (tweenKeyMap.has(target, key))
 		tweenKeyMap.get(target, key).canceled = true
 
@@ -277,11 +306,11 @@ function tween(target, key, params = {}) {
 
 	let { isMultiple, bundle } = resolveBundle(target, key, from, to, ease, override)
 
-	let tween = { id: tweenCount++, target, key, isMultiple, bundle, onStart, onUpdate, onThrough, onComplete, canceled: false, forceComplete: false, params }
+	let progress = 0, time = -delay, frame = 0
+
+	let tween = { id: tweenCount++, target, key, time, progress, frame, isMultiple, bundle, onStart, onUpdate, onThrough, onComplete, canceled: false, forceComplete: false, params }
 
 	tweenKeyMap.set(target, key, tween)
-
-	let progress, time = -delay, frame = 0
 
 	if (!isMultiple) {
 
@@ -294,7 +323,7 @@ function tween(target, key, params = {}) {
 
 		}
 
-		Animator.onUpdate(() => {
+		internalUpdateStack.add(() => {
 
 			time += deltaTime
 
@@ -329,7 +358,7 @@ function tween(target, key, params = {}) {
 
 			target[key] = value
 
-			Object.assign(tween, { value, time, progress })
+			Object.assign(tween, { value, time, progress, frame })
 
 			if (onStart && time - deltaTime <= 0)
 				onStart(tween)
@@ -339,10 +368,15 @@ function tween(target, key, params = {}) {
 
 			if (onThrough) {
 
-				let [threshold, callback] = onThrough
+				for (let i = 0, n = onThrough.length; i < n; i += 2) {
 
-				if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
-					callback(tween)
+					let threshold = onThrough[i]
+					let callback = onThrough[i + 1]
+
+					if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
+						callback(tween)
+
+				}
 
 			}
 
@@ -370,7 +404,7 @@ function tween(target, key, params = {}) {
 		for (let [target, key, fx] of bundle)
 			target[key] = fx(0)
 
-		Animator.onUpdate(() => {
+		internalUpdateStack.add(() => {
 
 			time += deltaTime
 
@@ -428,13 +462,18 @@ function tween(target, key, params = {}) {
 					if (!Array.isArray(onThroughItem))
 						continue
 
-					let [threshold, callback] = onThroughItem
+					for (let i = 0, n = onThroughItem.length; i < n; i += 2) {
 
-					let value = values[index]
-					let previous = previouses[index]
+						let threshold = onThroughItem[i]
+						let callback = onThroughItem[i + 1]
 
-					if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
-						callback(tween)
+						let value = values[index]
+						let previous = previouses[index]
+
+						if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
+							callback(tween)
+
+					}
 
 				}
 
@@ -463,24 +502,7 @@ function tween(target, key, params = {}) {
 
 function getTweensOf(target, key = null) {
 
-	let tweens = []
-
-	for (let [currentTarget, dict] of tweenKeyMap.map) {
-
-		if (target === currentTarget) {
-
-			for (let [currentKey, tween] of Object.entries(dict)) {
-
-				if (!key || key === currentKey)
-					tweens.push(tween)
-
-			}
-
-		}
-
-	}
-
-	return tweens
+	return tweenKeyMap.values(target, key)
 
 }
 
@@ -507,6 +529,8 @@ update()
 
 export {
 
+	updateFrame,
+
 	time,
 	frame,
 	paused,
@@ -517,8 +541,8 @@ export {
 	during,
 
 	ease,
-	cancelEase,
-	forceCompleteEase,
+	cancelEasingsOf,
+	forceCompleteEasingsOf,
 	easeKeyMap,
 
 	tween,
@@ -529,6 +553,8 @@ export {
 }
 
 let Animator = {
+
+	updateFrame,
 
 	get time() { return time },
 	get frame() { return frame },
@@ -541,8 +567,8 @@ let Animator = {
 	during,
 
 	ease,
-	cancelEase,
-	forceCompleteEase,
+	cancelEasingsOf,
+	forceCompleteEasingsOf,
 	easeKeyMap,
 
 	tween,

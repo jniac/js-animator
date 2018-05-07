@@ -1,0 +1,57 @@
+body {
+    font-family: monospace;
+    margin: 0;
+    padding: 32px;
+    padding-top: 300px;
+}
+
+.block {
+    width: 80px;
+    height: 80px;
+    background-color: #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    color: #0006;
+    transition: background-color .15s ease-out;
+    user-select: none;
+}
+
+.block.click {
+    background-color: #39f;
+    cursor: pointer;
+    transition: background-color .2s ease-out;
+}
+.block.click:hover {
+    background-color: #4af;
+}
+
+.UI {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 0;
+    z-index: 1;
+    padding-top: 32px;
+}
+
+.UI .menu {
+    display: flex;
+}
+
+.UI .button {
+    background-color: #eee;
+    padding: 12px;
+    border-radius: 4px;
+    margin-right: 4px;
+    cursor: pointer;
+    border: #0000 1px solid;
+    transition: .25s ease-out;
+    user-select: none;
+}
+
+.UI .button:hover {
+    border-color: #0003;
+    background-color: #eee3;
+}

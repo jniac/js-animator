@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2018-05-07 11:17 GMT(+2)
+	2018-05-07 14:51 GMT(+2)
 
 */
 
@@ -103,14 +103,101 @@ class KeyMap {
 
     }
 
-    *values() {
+    entries(target = null, key = null) {
 
-        for (let [target, dict] of this.map) {
+        let entries = [];
 
-            for (let key in dict)
-                yield dict[key];
+    	for (let [currentTarget, dict] of this.map) {
+
+    		if (!target || target === currentTarget) {
+
+                for (let currentKey in dict) {
+
+    				if (!key || key === currentKey)
+                        entries.push([currentTarget, currentKey, dict[currentKey]]);
+
+    			}
+
+    		}
+
+    	}
+
+    	return entries
+
+    }
+
+    values(target = null, key = null) {
+
+        let values = [];
+
+        for (let [currentTarget, dict] of this.map) {
+
+            if (!target || target === currentTarget) {
+
+                for (let currentKey in dict) {
+
+                    if (!key || key === currentKey)
+                        values.push(dict[currentKey]);
+
+                }
+
+            }
 
         }
+
+        return values
+
+    }
+
+}
+
+class Stack {
+
+    constructor() {
+
+        this.array = [];
+        this.frame = 0;
+
+    }
+
+    update() {
+
+        let { array, frame } = this;
+
+        let tmp = this.array;
+    	this.array = [];
+    	this.array = tmp.filter(({ callback, thisArg, args, skip }) => {
+
+    		if (frame % (1 + skip))
+    			return true
+
+    		return callback.apply(thisArg, args) !== false
+
+    	}).concat(this.array);
+
+        frame++;
+
+        Object.assign(this, { frame });
+
+    }
+
+    add(callback, { thisArg = null, args = null, skip = 0 } = {}) {
+
+    	if (!callback)
+    		return
+
+    	let listener = {
+
+    		callback,
+    		thisArg,
+            args,
+    		skip,
+
+    	};
+
+    	this.array.push(listener);
+
+    	return listener
 
     }
 
@@ -284,12 +371,45 @@ function gainBind(p = 3, i = .5, clamp = true) {
 
 }
 
-let updateArray = [];
+// let updateArray = []
 
 let deltaTime = 1 / 60;
 let frame = 0;
 let time = 0;
 let paused = false;
+
+// function updateFrame() {
+//
+// 	let tmp = updateArray
+// 	updateArray = []
+// 	updateArray = tmp.filter(listener => {
+//
+// 		if (frame % (1 + listener.skipFrames))
+// 			return true
+//
+// 		return listener.callback.apply(listener.thisArg) !== false
+//
+// 	}).concat(updateArray)
+//
+// 	frame++
+// 	time += deltaTime
+//
+// }
+
+let internalUpdateStack = new Stack();
+let externalUpdateStack = new Stack();
+
+Object.assign(window, { internalUpdateStack });
+
+function updateFrame() {
+
+	internalUpdateStack.update();
+	externalUpdateStack.update();
+
+	frame++;
+	time += deltaTime;
+
+}
 
 function update() {
 
@@ -298,36 +418,13 @@ function update() {
 	if (paused)
 		return
 
-	let tmp = updateArray;
-	updateArray = [];
-	updateArray = tmp.filter(listener => {
-
-		if (frame % (1 + listener.skipFrames))
-			return true
-
-		return listener.callback.apply(listener.thisArg) !== false
-
-	}).concat(updateArray);
-
-	frame++;
-	time += deltaTime;
+	updateFrame();
 
 }
 
+function onUpdate(callback, options) {
 
-
-function onUpdate(callback, { thisArg = null, skipFrames = 0 } = {}) {
-
-	if (!callback)
-		return
-
-	updateArray.push({
-
-		callback,
-		thisArg,
-		skipFrames,
-
-	});
+	externalUpdateStack.add(callback, options);
 
 }
 
@@ -335,7 +432,7 @@ function onTimeout(delay, callback) {
 
 	let t = time + delay;
 
-	Animator.onUpdate(() => {
+	externalUpdateStack.add(() => {
 
 		if (time >= t)
 			callback();
@@ -350,7 +447,7 @@ function onFrameout(count, callback) {
 
 	let f = frame + count;
 
-	Animator.onUpdate(() => {
+	externalUpdateStack.add(() => {
 
 		if (frame >= f)
 			callback();
@@ -379,7 +476,7 @@ function during(duration, callback, { delay = 0, onStart = null, onComplete = nu
 
 	let progress, time = -delay;
 
-	Animator.onUpdate(() => {
+	externalUpdateStack.add(() => {
 
 		time += deltaTime;
 
@@ -417,31 +514,37 @@ let easeKeyMap = new KeyMap();
 
 function ease(target, key, targetValue, options = {}) {
 
+	cancelTweensOf(target, key);
+
 	let { epsilon = .001, autoEpsilon = true } = options;
 
 	if (autoEpsilon)
 		epsilon = Math.max(epsilon, Math.abs(targetValue - target[key]) * epsilon);
 
+	let ease = Object.assign(options, { target, key, targetValue, epsilon });
+
     if (easeKeyMap.has(target, key)) {
 
-        easeKeyMap.set(target, key, Object.assign({ targetValue, epsilon }, options));
+        easeKeyMap.assign(target, key, ease);
 
         return
 
     }
 
-    easeKeyMap.set(target, key, Object.assign({ targetValue, epsilon }, options));
+    easeKeyMap.set(target, key, ease);
 
 	let { delay = 0 } = options;
 
 	let time = -delay, frame = 0;
 
-    Animator.onUpdate(() => {
+    internalUpdateStack.add(() => {
 
 		time += deltaTime;
 
         if (time < 0)
             return true
+
+		let ease = easeKeyMap.get(target, key);
 
         let {
 
@@ -455,7 +558,7 @@ function ease(target, key, targetValue, options = {}) {
 			canceled = false,
 			forceComplete = false,
 
-		} = easeKeyMap.get(target, key);
+		} = ease;
 
         if (canceled) {
 
@@ -487,26 +590,30 @@ function ease(target, key, targetValue, options = {}) {
 
 		target[key] = value;
 
+		Object.assign(ease, { value, delta, previous, time, frame });
+
 		if (onStart && time - deltaTime <= 0)
-			onStart({ target, key, value, delta, previous, time, frame });
+			onStart(ease);
 
 		if (onUpdate)
-			onUpdate({ target, key, value, delta, previous, time, frame });
+			onUpdate(ease);
 
 		if (onThrough) {
 
-			let [threshold, callback] = onThrough;
+			for (let i = 0, n = onThrough.length; i < n; i += 2) {
 
-			if (value >= threshold && previous < threshold || value <= threshold && previous > threshold) {
+				let threshold = onThrough[i];
+				let callback = onThrough[i + 1];
 
-				callback({ target, key, value, delta, previous, time, frame });
+				if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
+					callback(ease);
 
 			}
 
 		}
 
 		if (onComplete && complete)
-			onComplete({ target, key, value, delta, previous, time, frame });
+			onComplete(ease);
 
         if (complete) {
 
@@ -524,17 +631,17 @@ function ease(target, key, targetValue, options = {}) {
 
 }
 
-function cancelEase(target, key) {
+function cancelEasingsOf(target, key = null) {
 
-	if (easeKeyMap.has(target, key))
-		easeKeyMap.assign(target, key, { canceled: true });
+	for (let ease of easeKeyMap.values(target, key))
+		ease.canceled = true;
 
 }
 
-function forceCompleteEase(target, key) {
+function forceCompleteEasingsOf(target, key = null) {
 
-	if (easeKeyMap.has(target, key))
-		easeKeyMap.assign(target, key, { forceComplete: true });
+	for (let ease of easeKeyMap.values(target, key))
+		ease.forceComplete = true;
 
 }
 
@@ -550,6 +657,8 @@ let tweenKeyMap = new KeyMap();
 
 function tween(target, key, params = {}) {
 
+	cancelEasingsOf(target, key);
+
 	if (tweenKeyMap.has(target, key))
 		tweenKeyMap.get(target, key).canceled = true;
 
@@ -559,11 +668,11 @@ function tween(target, key, params = {}) {
 
 	let { isMultiple, bundle } = resolveBundle(target, key, from, to, ease, override);
 
-	let tween = { id: tweenCount++, target, key, isMultiple, bundle, onStart, onUpdate, onThrough, onComplete, canceled: false, forceComplete: false, params };
+	let progress = 0, time = -delay, frame = 0;
+
+	let tween = { id: tweenCount++, target, key, time, progress, frame, isMultiple, bundle, onStart, onUpdate, onThrough, onComplete, canceled: false, forceComplete: false, params };
 
 	tweenKeyMap.set(target, key, tween);
-
-	let progress, time = -delay;
 
 	if (!isMultiple) {
 
@@ -576,7 +685,7 @@ function tween(target, key, params = {}) {
 
 		}
 
-		Animator.onUpdate(() => {
+		internalUpdateStack.add(() => {
 
 			time += deltaTime;
 
@@ -611,7 +720,7 @@ function tween(target, key, params = {}) {
 
 			target[key] = value;
 
-			Object.assign(tween, { value, time, progress });
+			Object.assign(tween, { value, time, progress, frame });
 
 			if (onStart && time - deltaTime <= 0)
 				onStart(tween);
@@ -621,10 +730,15 @@ function tween(target, key, params = {}) {
 
 			if (onThrough) {
 
-				let [threshold, callback] = onThrough;
+				for (let i = 0, n = onThrough.length; i < n; i += 2) {
 
-				if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
-					callback(tween);
+					let threshold = onThrough[i];
+					let callback = onThrough[i + 1];
+
+					if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
+						callback(tween);
+
+				}
 
 			}
 
@@ -639,6 +753,8 @@ function tween(target, key, params = {}) {
 
 			}
 
+			frame++;
+
 			return true
 
 		});
@@ -650,7 +766,7 @@ function tween(target, key, params = {}) {
 		for (let [target, key, fx] of bundle)
 			target[key] = fx(0);
 
-		Animator.onUpdate(() => {
+		internalUpdateStack.add(() => {
 
 			time += deltaTime;
 
@@ -708,13 +824,18 @@ function tween(target, key, params = {}) {
 					if (!Array.isArray(onThroughItem))
 						continue
 
-					let [threshold, callback] = onThroughItem;
+					for (let i = 0, n = onThroughItem.length; i < n; i += 2) {
 
-					let value = values[index];
-					let previous = previouses[index];
+						let threshold = onThroughItem[i];
+						let callback = onThroughItem[i + 1];
 
-					if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
-						callback(tween);
+						let value = values[index];
+						let previous = previouses[index];
+
+						if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
+							callback(tween);
+
+					}
 
 				}
 
@@ -731,6 +852,8 @@ function tween(target, key, params = {}) {
 
 			}
 
+			frame++;
+
 			return true
 
 		});
@@ -741,24 +864,7 @@ function tween(target, key, params = {}) {
 
 function getTweensOf(target, key = null) {
 
-	let tweens = [];
-
-	for (let [currentTarget, dict] of tweenKeyMap.map) {
-
-		if (target === currentTarget) {
-
-			for (let [currentKey, tween] of Object.entries(dict)) {
-
-				if (!key || key === currentKey)
-					tweens.push(tween);
-
-			}
-
-		}
-
-	}
-
-	return tweens
+	return tweenKeyMap.values(target, key)
 
 }
 
@@ -785,6 +891,8 @@ update();
 
 let Animator = {
 
+	updateFrame,
+
 	get time() { return time },
 	get frame() { return frame },
 	set paused(value) { paused = value; },
@@ -796,8 +904,8 @@ let Animator = {
 	during,
 
 	ease,
-	cancelEase,
-	forceCompleteEase,
+	cancelEasingsOf,
+	forceCompleteEasingsOf,
 	easeKeyMap,
 
 	tween,
@@ -808,4 +916,4 @@ let Animator = {
 };
 
 export default Animator;
-export { time, frame, paused, onUpdate, onTimeout, onFrameout, during, ease, cancelEase, forceCompleteEase, easeKeyMap, tween, tweenKeyMap, getTweensOf, cancelTweensOf };
+export { updateFrame, time, frame, paused, onUpdate, onTimeout, onFrameout, during, ease, cancelEasingsOf, forceCompleteEasingsOf, easeKeyMap, tween, tweenKeyMap, getTweensOf, cancelTweensOf };

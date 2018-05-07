@@ -3,29 +3,19 @@
     <head>
         <meta charset="utf-8">
         <title></title>
-        <style media="screen">
-            body {
-                font-family: monospace;
-            }
-            .block {
-                width: 120px;
-                height: 120px;
-                background-color: #ccc;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-size: 2em;
-                color: #0006;
-            }
-            pre.UI {
-                position: absolute;
-                top: 0;
-                z-index: 1;
-            }
-        </style>
+        <link rel="stylesheet" href="main.css">
     </head>
     <body>
-        <pre class="UI"></pre>
+        <div class="UI">
+            <div class="menu">
+                <span class='button playOnDown'>Play on down</span>
+                <span class='button oneFrame'>One frame</span>
+                <span class='button togglePaused'>Toggle paused</span>
+            </div>
+            <pre></pre>
+        </div>
+        <div class="block"></div>
+        <div class="block"></div>
         <div class="block"></div>
         <div class="block"></div>
         <div class="block"></div>
@@ -43,43 +33,73 @@
 
             const B = index => Sprite.get(document.querySelectorAll('.block')[index])
 
+            document.querySelector('.UI .button.playOnDown').onmousedown = () => Animator.paused = false
+            document.querySelector('.UI .button.playOnDown').onmouseup = () => Animator.paused = true
+            document.querySelector('.UI .button.oneFrame').onmouseup = () => Animator.updateFrame()
+            document.querySelector('.UI .button.togglePaused').onmouseup = () => Animator.paused = !Animator.paused
+
+            Animator.onUpdate(() => {
+
+                document.querySelector('.UI pre').innerHTML = `Animator.frame: #${Animator.frame} Animator.time: ${Animator.time.toFixed(2)}s\n` +
+
+                `Animator.easeKeyMap.size: ${Animator.easeKeyMap.size}\n` + [...Animator.easeKeyMap.values()].map((
+
+                    ({ key, value, delta, epsilon }) => key + ' ' + ots({ value, delta, epsilon }, { toFixed: 3 })
+
+                )).join('\n') + '\n\n'
+
+            })
+
+            Object.assign(window, {
+
+                B,
+                Animator,
+                Sprite,
+
+            })
+
             Animator.ease(B(0), 'x', 300)
             Animator.ease(B(1), 'x', 300, { decay: .0001 }) // option
 
             Animator.ease(B(2), 'x', 300)
-            Animator.ease(B(2), 'scale', .5)
+            Animator.ease(B(2), 'rotation', 180) // no-override since 'x' !== 'scale'
 
             Animator.ease(B(3), 'x', 300)
             Animator.ease(B(3), 'x', 500, { decay: .0001 }) // auto-overide
 
             Animator.ease(B(4), 'x', 300, {
 
-                onThrough: [200, () => Animator.forceCompleteEase(B(4), 'x')],
-                onStart: () => console.log('start', performance.now()),
-                onComplete: e => console.log('complete', performance.now(), e),
+                onStart: ease => ease.target.backgroundColor = 'red',
+                onComplete: ease => ease.target.backgroundColor = null,
 
             })
 
             Animator.ease(B(5), 'x', 300, {
 
-                onThrough: [200, () => {
-
-                    Animator.ease(B(5), 'x', 0, { decay: .1 })
-
-                }]
+                onThrough: [200, ease => Animator.cancelEasingsOf(ease.target, 'x')],
+                onStart: ease => ease.target.backgroundColor = 'red',
+                onComplete: ease => ease.target.backgroundColor = null,
 
             })
 
-            Animator.onUpdate(() => {
+            Animator.ease(B(6), 'x', 300, {
 
-                document.querySelector('.UI').innerHTML = `Animator.frame: #${Animator.frame} Animator.time: ${Animator.time.toFixed(2)}s\n` +
+                onThrough: [200, ease => Animator.forceCompleteEasingsOf(ease.target, 'x')],
+                onStart: ({ target }) => target.backgroundColor = 'red',
+                onComplete: ({ target }) => target.backgroundColor = null,
 
-                `Animator.easeKeyMap.size: ${Animator.easeKeyMap.size}\n` + [...Animator.easeKeyMap].map(([target, key, values]) => (
+            })
 
-                    target.toString() + ' ' + key + ' ' + ots(values, {depth: 1})
+            Animator.ease(B(7), 'x', 300, {
 
+                decay: .1,
+                onThrough: [
 
-                )).join('\n')
+                    50, ({ target }) => target.backgroundColor = 'red',
+                    250, ({ target }) => target.backgroundColor = '#06f',
+
+                ],
+                onComplete: ({ target }) => target.backgroundColor = null,
 
             })
 
@@ -115,14 +135,6 @@
                 return progress < .5
 
             }, { delay: .75 })
-
-            Object.assign(window, {
-
-                B,
-                Animator,
-                Sprite,
-
-            })
 
 
 

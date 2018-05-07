@@ -48,6 +48,9 @@ function functionSignature(fn) {
 
 export default function ots(object, options = {}) {
 
+	if (typeof options === 'number')
+		options = { depth: options }
+
 	let { depth = 2, dispKey = true, arrayMax = 100, toFixed, printFunction = false, joinPattern = ', ' } = options
 
 	options = { depth: depth - 1, dispKey, arrayMax, toFixed, printFunction, joinPattern }

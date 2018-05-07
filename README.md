@@ -12,7 +12,12 @@ Animator.tween(obj, 'x', { to: 300, delay: .4, ease: 'inout',
 
     onStart: ({ target }) => target.color = 'red',
     onUpdate: () => { ... },
-    onThrough: [100, () => console.log('through 100!!')],
+    onThrough: [
+
+        100, () => console.log('through 100!!'),
+        200, () => console.log('through 200!!'),
+
+    ],
     onComplete: ({ target }) => target.color = null,
 
 })

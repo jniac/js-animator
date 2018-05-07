@@ -1,4 +1,5 @@
 // import path from 'path'
+import fs from 'fs'
 
 function date() {
 
@@ -13,6 +14,14 @@ function date() {
 
 }
 
+function license() {
+
+	let str = fs.readFileSync('./LICENSE', 'utf8').trim().replace(/\n/g, '\n\t')
+
+	return str
+
+}
+
 function banner() {
 
 	return `
@@ -21,6 +30,9 @@ function banner() {
 
 	Animator.js
 	${date()}
+	https://github.com/jniac/js-animator
+
+	${license()}
 
 */
 

@@ -16,7 +16,12 @@
                 align-items: center;
                 font-size: 2em;
                 color: #0006;
-                transition: background-color .2s ease-out;
+                transition: background-color .5s ease-out;
+                user-select: none;
+            }
+            .block.click {
+                background-color: #39f;
+                cursor: pointer;
             }
             pre.UI {
                 position: absolute;
@@ -30,9 +35,9 @@
         <div class="block"></div>
         <div class="block"></div>
         <div class="block"></div>
-        <div class="block"></div>
-        <div class="block"></div>
-        <div class="block"></div>
+        <div class="block click"></div>
+        <div class="block click"></div>
+        <div class="block click"></div>
         <div class="block"></div>
         <div class="block"></div>
         <div class="block"></div>
@@ -54,11 +59,20 @@
 
             const B = index => Sprite.get(document.querySelectorAll('.block')[index])
 
+            function stringProgress(size, progress) {
+
+                let n = Math.round(size * progress)
+
+                return '●'.repeat(n) + '◦'.repeat(size - n)
+
+            }
+
             Object.assign(window, {
 
                 B,
                 Animator,
                 Sprite,
+                stringProgress,
 
             })
 
@@ -66,14 +80,14 @@
 
                 document.querySelector('.UI').innerHTML = `Animator.frame: #${Animator.frame} Animator.time: ${Animator.time.toFixed(2)}s\n` +
 
-                `Animator.tweenKeyMap.size: ${Animator.tweenKeyMap.size}\n` + [...Animator.tweenKeyMap].map(([target, key, tween]) => (
+                `Animator.tweenKeyMap.size: ${Animator.tweenKeyMap.size}\n\n` + [...Animator.tweenKeyMap].map(([target, key, tween]) => (
 
-                    `tween#${tween.id} ` + target.toString() + ' ' + key
+                    `tween#${tween.id} ${stringProgress(10, tween.progress)} ` + target.toString() + ' ' + key
 
 
                 )).join('\n')
 
-            })
+            }, { skipFrames: 3 })
 
 
 
@@ -92,6 +106,10 @@
             Animator.tween(B(3), 'x', { to: 300, ease: 'inout,2' })
             Animator.tween(B(4), 'x', { to: 300, ease: 'inout,3' })
             Animator.tween(B(5), 'x', { to: 300, ease: 'inout,4' })
+
+            B(3).onclick = () => Animator.tween(B(3), 'x', { to: B(3).x > 150 ? 0 : 300, ease: 'inout,2' })
+            B(4).onclick = () => Animator.tween(B(4), 'x', { to: B(4).x > 150 ? 0 : 300, ease: 'inout,3' })
+            B(5).onclick = () => Animator.tween(B(5), 'x', { to: B(5).x > 150 ? 0 : 300, ease: 'inout,4' })
 
             Animator.tween(B(6), 'x', { from: 300, ease: 'out,4' })
             Animator.tween(B(7), 'x,rotation', { from: [300, 180], ease: 'out,4', onThrough:[[50, ({target}) => target.backgroundColor = 'red']] })

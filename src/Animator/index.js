@@ -5,6 +5,32 @@ let updateArray = []
 let deltaTime = 1 / 60
 let frame = 0
 let time = 0
+let paused = false
+
+function update() {
+
+	requestAnimationFrame(update)
+
+	if (paused)
+		return
+
+	let tmp = updateArray
+	updateArray = []
+	updateArray = tmp.filter(listener => {
+
+		if (frame % (1 + listener.skipFrames))
+			return true
+
+		return listener.callback.apply(listener.thisArg) !== false
+
+	}).concat(updateArray)
+
+	frame++
+	time += deltaTime
+
+}
+
+
 
 function onUpdate(callback, { thisArg = null, skipFrames = 0 } = {}) {
 
@@ -94,32 +120,6 @@ function during(duration, callback, { delay = 0, onStart = null, onComplete = nu
 	})
 
 }
-
-function update() {
-
-	requestAnimationFrame(update)
-
-	// The only way to do that efficiently is to:
-	// 1 • backup the array, and empty the public one
-	// 2 • filter the array by calling each callback (skipping frames if that is the case)
-	// 3 • concat the filtered array with the new one, and say this is the public array
-	let tmp = updateArray
-	updateArray = []
-	updateArray = tmp.filter(listener => {
-
-		if (frame % (1 + listener.skipFrames))
-			return true
-
-		return listener.callback.apply(listener.thisArg) !== false
-
-	}).concat(updateArray)
-
-	frame++
-	time += deltaTime
-
-}
-
-update()
 
 
 
@@ -503,11 +503,37 @@ function cancelTweensOf(target, key = null) {
 
 
 
+update()
+
+export {
+
+	time,
+	frame,
+	paused,
+
+	onUpdate,
+	onTimeout,
+	onFrameout,
+	during,
+
+	ease,
+	cancelEase,
+	forceCompleteEase,
+	easeKeyMap,
+
+	tween,
+	tweenKeyMap,
+	getTweensOf,
+	cancelTweensOf,
+
+}
 
 let Animator = {
 
 	get time() { return time },
 	get frame() { return frame },
+	set paused(value) { paused = value },
+	get paused() { return paused },
 
 	onUpdate,
 	onTimeout,

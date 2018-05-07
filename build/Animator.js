@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2018-05-07 14:51 GMT(+2)
+	2018-05-07 14:53 GMT(+2)
 
 */
 
@@ -378,28 +378,8 @@ let frame = 0;
 let time = 0;
 let paused = false;
 
-// function updateFrame() {
-//
-// 	let tmp = updateArray
-// 	updateArray = []
-// 	updateArray = tmp.filter(listener => {
-//
-// 		if (frame % (1 + listener.skipFrames))
-// 			return true
-//
-// 		return listener.callback.apply(listener.thisArg) !== false
-//
-// 	}).concat(updateArray)
-//
-// 	frame++
-// 	time += deltaTime
-//
-// }
-
 let internalUpdateStack = new Stack();
 let externalUpdateStack = new Stack();
-
-Object.assign(window, { internalUpdateStack });
 
 function updateFrame() {
 
@@ -508,7 +488,7 @@ function during(duration, callback, { delay = 0, onStart = null, onComplete = nu
 
 
 
-
+// EASE
 
 let easeKeyMap = new KeyMap();
 
@@ -649,7 +629,7 @@ function forceCompleteEasingsOf(target, key = null) {
 
 
 
-
+// TWEEN
 
 let tweenCount = 0;
 

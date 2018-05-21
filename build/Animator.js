@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2018-05-07 16:53 GMT(+2)
+	2018-05-21 22:24 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -882,6 +882,13 @@ function cancelTweensOf(target, key = null) {
 
 }
 
+function cancel(target, key = null) {
+
+	cancelEasingsOf(target, key);
+	cancelTweensOf(target, key);
+
+}
+
 
 
 
@@ -916,7 +923,9 @@ let Animator = {
 	getTweensOf,
 	cancelTweensOf,
 
+	cancel,
+
 };
 
 export default Animator;
-export { updateFrame, time, frame, paused, onUpdate, onTimeout, onFrameout, during, ease, cancelEasingsOf, forceCompleteEasingsOf, easeKeyMap, tween, tweenKeyMap, getTweensOf, cancelTweensOf };
+export { updateFrame, time, frame, paused, onUpdate, onTimeout, onFrameout, during, ease, cancelEasingsOf, forceCompleteEasingsOf, easeKeyMap, tween, tweenKeyMap, getTweensOf, cancelTweensOf, cancel };

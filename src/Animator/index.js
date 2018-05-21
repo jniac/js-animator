@@ -497,6 +497,13 @@ function cancelTweensOf(target, key = null) {
 
 }
 
+function cancel(target, key = null) {
+
+	cancelEasingsOf(target, key)
+	cancelTweensOf(target, key)
+
+}
+
 
 
 
@@ -530,6 +537,8 @@ export {
 	getTweensOf,
 	cancelTweensOf,
 
+	cancel,
+
 }
 
 let Animator = {
@@ -555,6 +564,8 @@ let Animator = {
 	tweenKeyMap,
 	getTweensOf,
 	cancelTweensOf,
+
+	cancel,
 
 }
 

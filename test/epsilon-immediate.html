@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <link rel="stylesheet" href="main.css">
+    </head>
+    <body>
+        <div class="UI">
+            <div class="menu">
+                <span class='button playOnDown'>Play on down</span>
+                <span class='button oneFrame'>One frame</span>
+                <span class='button togglePaused'>Toggle paused</span>
+            </div>
+            <pre></pre>
+        </div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <script type="module">
+
+            import Animator from '../src/Animator/index.js'
+            import Sprite from './Sprite.js'
+            import ots from './ots.js'
+
+            for (let [index, block] of document.querySelectorAll('.block').entries())
+                block.innerHTML = index
+
+            const B = index => Sprite.get(document.querySelectorAll('.block')[index])
+
+            Object.assign(window, {
+
+                B,
+                Animator,
+                Sprite,
+
+            })
+
+            Animator.ease(B(0), 'x', 300, { decay: .1, epsilon: 30, autoEpsilon: false })
+
+            console.log(...Animator.getEasingsOf(B(0)))
+
+            Animator.tween(B(1), 'x', { from: 300 })
+            console.log(B(1).x)
+
+        </script>
+    </body>
+</html>

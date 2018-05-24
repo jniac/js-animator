@@ -280,7 +280,7 @@ function tween(target, key, params = {}) {
 	if (tweenKeyMap.has(target, key))
 		tweenKeyMap.get(target, key).canceled = true
 
-	let { duration = 1, delay = 0, from, to, ease, override, onStart, onUpdate, onThrough, onComplete } = params
+	let { duration = 1, delay = 0, from, to, ease, override, onStart, onUpdate, onThrough, onComplete, immediate = true } = params
 
 	ease = resolveEase(ease)
 
@@ -292,20 +292,9 @@ function tween(target, key, params = {}) {
 
 	tweenKeyMap.set(target, key, tween)
 
-	if (!isMultiple) {
+	let callback = !isMultiple
 
-		// single tween
-
-		{
-
-			let [target, key, fx] = bundle
-			target[key] = fx(0)
-
-		}
-
-		internalUpdateStack.add(() => {
-
-			time += deltaTime
+		? () => {
 
 	        if (time < 0)
 	            return true
@@ -371,22 +360,14 @@ function tween(target, key, params = {}) {
 
 			}
 
+			time += deltaTime
 			frame++
 
 			return true
 
-		})
+		}
 
-	} else {
-
-		// multiple tween
-
-		for (let [target, key, fx] of bundle)
-			target[key] = fx(0)
-
-		internalUpdateStack.add(() => {
-
-			time += deltaTime
+		: () => {
 
 	        if (time < 0)
 	            return true
@@ -470,13 +451,17 @@ function tween(target, key, params = {}) {
 
 			}
 
+			time += deltaTime
 			frame++
 
 			return true
 
-		})
+		}
 
-	}
+	if (immediate)
+		callback()
+
+	internalUpdateStack.add(callback)
 
 }
 
@@ -528,6 +513,7 @@ export {
 	during,
 
 	ease,
+	getEasingsOf,
 	cancelEasingsOf,
 	forceCompleteEasingsOf,
 	easeKeyMap,
@@ -556,6 +542,7 @@ let Animator = {
 	during,
 
 	ease,
+	getEasingsOf,
 	cancelEasingsOf,
 	forceCompleteEasingsOf,
 	easeKeyMap,

@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2018-05-21 22:24 GMT(+2)
+	2018-05-24 14:06 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -634,6 +634,12 @@ function ease(target, key, targetValue, options = {}) {
 
 }
 
+function getEasingsOf(target, key = null) {
+
+	return easeKeyMap.values(target, key)
+
+}
+
 function cancelEasingsOf(target, key = null) {
 
 	for (let ease of easeKeyMap.values(target, key))
@@ -665,7 +671,7 @@ function tween(target, key, params = {}) {
 	if (tweenKeyMap.has(target, key))
 		tweenKeyMap.get(target, key).canceled = true;
 
-	let { duration = 1, delay = 0, from, to, ease, override, onStart, onUpdate, onThrough, onComplete } = params;
+	let { duration = 1, delay = 0, from, to, ease, override, onStart, onUpdate, onThrough, onComplete, immediate = true } = params;
 
 	ease = resolveEase(ease);
 
@@ -677,20 +683,9 @@ function tween(target, key, params = {}) {
 
 	tweenKeyMap.set(target, key, tween);
 
-	if (!isMultiple) {
+	let callback = !isMultiple
 
-		// single tween
-
-		{
-
-			let [target, key, fx] = bundle;
-			target[key] = fx(0);
-
-		}
-
-		internalUpdateStack.add(() => {
-
-			time += deltaTime;
+		? () => {
 
 	        if (time < 0)
 	            return true
@@ -756,22 +751,14 @@ function tween(target, key, params = {}) {
 
 			}
 
+			time += deltaTime;
 			frame++;
 
 			return true
 
-		});
+		}
 
-	} else {
-
-		// multiple tween
-
-		for (let [target, key, fx] of bundle)
-			target[key] = fx(0);
-
-		internalUpdateStack.add(() => {
-
-			time += deltaTime;
+		: () => {
 
 	        if (time < 0)
 	            return true
@@ -855,13 +842,17 @@ function tween(target, key, params = {}) {
 
 			}
 
+			time += deltaTime;
 			frame++;
 
 			return true
 
-		});
+		};
 
-	}
+	if (immediate)
+		callback();
+
+	internalUpdateStack.add(callback);
 
 }
 
@@ -914,6 +905,7 @@ let Animator = {
 	during,
 
 	ease,
+	getEasingsOf,
 	cancelEasingsOf,
 	forceCompleteEasingsOf,
 	easeKeyMap,
@@ -928,4 +920,4 @@ let Animator = {
 };
 
 export default Animator;
-export { updateFrame, time, frame, paused, onUpdate, onTimeout, onFrameout, during, ease, cancelEasingsOf, forceCompleteEasingsOf, easeKeyMap, tween, tweenKeyMap, getTweensOf, cancelTweensOf, cancel };
+export { updateFrame, time, frame, paused, onUpdate, onTimeout, onFrameout, during, ease, getEasingsOf, cancelEasingsOf, forceCompleteEasingsOf, easeKeyMap, tween, tweenKeyMap, getTweensOf, cancelTweensOf, cancel };

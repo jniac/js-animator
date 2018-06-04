@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2018-05-24 14:06 GMT(+2)
+	2018-06-05 00:01 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -687,8 +687,13 @@ function tween(target, key, params = {}) {
 
 		? () => {
 
-	        if (time < 0)
-	            return true
+	        if (time < 0) {
+
+				time += deltaTime;
+
+				return true
+				
+			}
 
 	        let {
 
@@ -760,8 +765,13 @@ function tween(target, key, params = {}) {
 
 		: () => {
 
-	        if (time < 0)
-	            return true
+	        if (time < 0) {
+
+				time += deltaTime;
+
+				return true
+				
+			}
 
 	        let {
 

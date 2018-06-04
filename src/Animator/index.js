@@ -296,8 +296,13 @@ function tween(target, key, params = {}) {
 
 		? () => {
 
-	        if (time < 0)
-	            return true
+	        if (time < 0) {
+
+				time += deltaTime
+
+				return true
+				
+			}
 
 	        let {
 
@@ -369,8 +374,13 @@ function tween(target, key, params = {}) {
 
 		: () => {
 
-	        if (time < 0)
-	            return true
+	        if (time < 0) {
+
+				time += deltaTime
+
+				return true
+				
+			}
 
 	        let {
 

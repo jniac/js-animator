@@ -30,6 +30,8 @@
         <div class="block"></div>
         <div class="block"></div>
         <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
         <script type="module">
 
             import Animator from '../src/Animator/index.js'
@@ -157,6 +159,9 @@
             Animator.tween(B(14), 'y', { override: x => sinOut(x, 40) })
 
             Animator.tween(B(15), 'x', { to: 300, delay: 5, duration: 30 })
+
+            Animator.tween(B(16), 'x', { to: 300, duration: 0 })
+            Animator.tween(B(17), 'x', { to: 300, delay: 1, duration: 0 })
 
         </script>
     </body>

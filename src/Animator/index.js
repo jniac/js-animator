@@ -300,7 +300,16 @@ function tween(target, key, params = {}) {
 
 				time += deltaTime
 
-				return true
+				// NOTE: check for one single first execuation
+				if (tween.immediateFirstCall) {
+
+					tween.immediateFirstCall = false
+
+				} else {
+
+					return true
+
+				}
 
 			}
 
@@ -322,7 +331,8 @@ function tween(target, key, params = {}) {
 			if (time > duration)
 				time = duration
 
-			progress = duration ? time / duration : 1
+			// NOTE: not so simple, read it one more time
+			progress = duration === 0 ? 1 : time < 0 ? 0 : time / duration
 
 			let complete = time === duration || forceComplete
 
@@ -374,11 +384,20 @@ function tween(target, key, params = {}) {
 
 		: () => {
 
-	        if (time < 0) {
+			if (time < 0) {
 
 				time += deltaTime
 
-				return true
+				// NOTE: check for one single first execuation
+				if (tween.immediateFirstCall) {
+
+					tween.immediateFirstCall = false
+
+				} else {
+
+					return true
+
+				}
 
 			}
 
@@ -400,7 +419,8 @@ function tween(target, key, params = {}) {
 			if (time > duration)
 				time = duration
 
-			progress = time / duration
+			// NOTE: not so simple, read it one more time
+			progress = duration === 0 ? 1 : time < 0 ? 0 : time / duration
 
 			let complete = time === duration || forceComplete
 
@@ -468,8 +488,14 @@ function tween(target, key, params = {}) {
 
 		}
 
-	if (immediate)
+	if (immediate) {
+
+		if (time < 0)
+			tween.immediateFirstCall = true
+
 		callback()
+
+	}
 
 	internalUpdateStack.add(callback)
 

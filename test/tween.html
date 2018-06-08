@@ -32,6 +32,8 @@
         <div class="block"></div>
         <div class="block"></div>
         <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
         <script type="module">
 
             import Animator from '../src/Animator/index.js'
@@ -160,8 +162,13 @@
 
             Animator.tween(B(15), 'x', { to: 300, delay: 5, duration: 30 })
 
+            // test duration = 0 (wo/w delay)
             Animator.tween(B(16), 'x', { to: 300, duration: 0 })
             Animator.tween(B(17), 'x', { to: 300, delay: 1, duration: 0 })
+
+            // test immediate with delay
+            Animator.tween(B(18), 'x', { from: 300, delay: 1 })
+            Animator.tween(B(19), 'x,rotation', { from: [300,180], delay: 1 })
 
         </script>
     </body>

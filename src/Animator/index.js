@@ -301,7 +301,7 @@ function tween(target, key, params = {}) {
 				time += deltaTime
 
 				return true
-				
+
 			}
 
 	        let {
@@ -322,7 +322,7 @@ function tween(target, key, params = {}) {
 			if (time > duration)
 				time = duration
 
-			progress = time / duration
+			progress = duration ? time / duration : 1
 
 			let complete = time === duration || forceComplete
 
@@ -379,7 +379,7 @@ function tween(target, key, params = {}) {
 				time += deltaTime
 
 				return true
-				
+
 			}
 
 	        let {

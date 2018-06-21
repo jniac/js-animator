@@ -70,45 +70,62 @@ function onFrameout(count, callback) {
 
 function during(duration, callback, { delay = 0, onStart = null, onComplete = null } = {}) {
 
-	if (onStart)
-		onTimeout(delay, onStart)
+	return new Promise((resolve) => {
 
-	if (duration === 0) {
+		if (onStart)
+			onTimeout(delay, onStart)
 
-		onTimeout(delay, () => callback({ progress: 1, time: 0 }))
+		if (duration === 0) {
 
-		if (onComplete)
-			onTimeout(delay, onComplete)
+			onTimeout(delay, () => callback({ progress: 1, time: 0 }))
 
-		return
+			if (onComplete)
+				onTimeout(delay, onComplete)
 
-	}
+			return
 
-	let progress, time = -delay
+		}
 
-	externalUpdateStack.add(() => {
+		let complete, progress, time = -delay
 
-		time += deltaTime
+		externalUpdateStack.add(() => {
 
-		if (time < 0)
-			return true
+			time += deltaTime
 
-		if (time > duration)
-			time = duration
+			if (time < 0)
+				return true
 
-		progress = time / duration
+			if (time > duration)
+				time = duration
 
-		let interrupted = callback({ progress, time }) === false
+			progress = time / duration
+			complete = time === duration
 
-		if (onComplete && time === duration)
-			onComplete()
+			let interrupted = callback({ complete, progress, time }) === false
 
-		if (interrupted)
-			return false
+			if (complete) {
 
-		return time < duration
+				resolve()
+
+				if (onComplete)
+					onComplete()
+
+			}
+
+			if (interrupted) {
+
+				resolve()
+
+				return false
+
+			}
+
+			return !complete
+
+		})
 
 	})
+
 
 }
 
@@ -124,120 +141,128 @@ let easeKeyMap = new KeyMap()
 
 function ease(target, key, targetValue, options = {}) {
 
-	cancelTweensOf(target, key)
+	return new Promise((resolve) => {
 
-	let { epsilon = .001, autoEpsilon = true } = options
+		cancelTweensOf(target, key)
 
-	if (autoEpsilon)
-		epsilon = Math.max(epsilon, Math.abs(targetValue - target[key]) * epsilon)
+		let { epsilon = .001, autoEpsilon = true } = options
 
-	let ease = Object.assign(options, { target, key, targetValue, epsilon })
+		if (autoEpsilon)
+			epsilon = Math.max(epsilon, Math.abs(targetValue - target[key]) * epsilon)
 
-    if (easeKeyMap.has(target, key)) {
+		let ease = Object.assign(options, { target, key, targetValue, epsilon })
 
-        easeKeyMap.assign(target, key, ease)
+	    if (easeKeyMap.has(target, key)) {
 
-        return
+	        easeKeyMap.assign(target, key, ease)
 
-    }
+	        return
 
-    easeKeyMap.set(target, key, ease)
+	    }
 
-	let { delay = 0 } = options
+	    easeKeyMap.set(target, key, ease)
 
-	let time = -delay, frame = 0
+		let { delay = 0 } = options
 
-    internalUpdateStack.add(() => {
+		let time = -delay, frame = 0
 
-		time += deltaTime
+	    internalUpdateStack.add(() => {
 
-        if (time < 0)
-            return true
+			time += deltaTime
 
-		let ease = easeKeyMap.get(target, key)
+	        if (time < 0)
+	            return true
 
-        let {
+			let ease = easeKeyMap.get(target, key)
 
-			targetValue,
-			epsilon,
-			onStart = null,
-			onUpdate = null,
-			onComplete = null,
-			onThrough = null,
-			decay = .01,
-			canceled = false,
-			forceComplete = false,
+	        let {
 
-		} = ease
+				targetValue,
+				epsilon,
+				onStart = null,
+				onUpdate = null,
+				onComplete = null,
+				onThrough = null,
+				decay = .01,
+				canceled = false,
+				forceComplete = false,
 
-        if (canceled) {
+			} = ease
 
-			easeKeyMap.delete(target, key)
+	        if (canceled) {
 
-			return false
+				easeKeyMap.delete(target, key)
 
-		}
+				resolve()
 
-        let value = target[key]
-
-		let previous = value
-
-		let delta = targetValue - value
-
-		let complete = Math.abs(delta) < epsilon || forceComplete
-
-		if (complete) {
-
-			value = targetValue
-
-		} else {
-
-			delta *= 1 - decay ** deltaTime
-
-			value += delta
-
-		}
-
-		target[key] = value
-
-		Object.assign(ease, { value, delta, previous, time, frame })
-
-		if (onStart && time - deltaTime <= 0)
-			onStart(ease)
-
-		if (onUpdate)
-			onUpdate(ease)
-
-		if (onThrough) {
-
-			for (let i = 0, n = onThrough.length; i < n; i += 2) {
-
-				let threshold = onThrough[i]
-				let callback = onThrough[i + 1]
-
-				if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
-					callback(ease)
+				return false
 
 			}
 
-		}
+	        let value = target[key]
 
-		if (onComplete && complete)
-			onComplete(ease)
+			let previous = value
 
-        if (complete) {
+			let delta = targetValue - value
 
-			easeKeyMap.delete(target, key)
+			let complete = Math.abs(delta) < epsilon || forceComplete
 
-			return false
+			if (complete) {
 
-		}
+				value = targetValue
 
-		frame++
+			} else {
 
-		return true
+				delta *= 1 - decay ** deltaTime
 
-    })
+				value += delta
+
+			}
+
+			target[key] = value
+
+			Object.assign(ease, { value, delta, previous, time, frame })
+
+			if (onStart && time - deltaTime <= 0)
+				onStart(ease)
+
+			if (onUpdate)
+				onUpdate(ease)
+
+			if (onThrough) {
+
+				for (let i = 0, n = onThrough.length; i < n; i += 2) {
+
+					let threshold = onThrough[i]
+					let callback = onThrough[i + 1]
+
+					if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
+						callback(ease)
+
+				}
+
+			}
+
+			if (onComplete && complete)
+				onComplete(ease)
+
+	        if (complete) {
+
+				easeKeyMap.delete(target, key)
+
+				resolve()
+				
+				return false
+
+			}
+
+			frame++
+
+			return true
+
+	    })
+
+	})
 
 }
 
@@ -275,191 +300,89 @@ let tweenKeyMap = new KeyMap()
 
 function tween(target, key, params = {}) {
 
-	cancelEasingsOf(target, key)
+	return new Promise((resolve) => {
 
-	if (tweenKeyMap.has(target, key))
-		tweenKeyMap.get(target, key).canceled = true
+		cancelEasingsOf(target, key)
 
-	let { duration = 1, delay = 0, from, to, ease, override, onStart, onUpdate, onThrough, onComplete, immediate = true } = params
+		if (tweenKeyMap.has(target, key))
+			tweenKeyMap.get(target, key).canceled = true
 
-	ease = resolveEase(ease)
+		let { duration = 1, delay = 0, from, to, ease, override, onStart, onUpdate, onThrough, onComplete, immediate = true } = params
 
-	let { isMultiple, bundle } = resolveBundle(target, key, from, to, ease, override)
+		ease = resolveEase(ease)
 
-	let progress = 0, time = -delay, frame = 0
+		let { isMultiple, bundle } = resolveBundle(target, key, from, to, ease, override)
 
-	let tween = { id: tweenCount++, target, key, time, progress, frame, isMultiple, bundle, onStart, onUpdate, onThrough, onComplete, canceled: false, forceComplete: false, params }
+		let progress = 0, time = -delay, frame = 0
 
-	tweenKeyMap.set(target, key, tween)
+		let tween = { id: tweenCount++, target, key, time, progress, frame, isMultiple, bundle, onStart, onUpdate, onThrough, onComplete, canceled: false, forceComplete: false, params }
 
-	let callback = !isMultiple
+		tweenKeyMap.set(target, key, tween)
 
-		? () => {
+		let callback = !isMultiple
 
-	        if (time < 0) {
+			? () => {
 
-				time += deltaTime
+		        if (time < 0) {
 
-				// NOTE: check for one single first execuation
-				if (tween.immediateFirstCall) {
+					time += deltaTime
 
-					tween.immediateFirstCall = false
+					// NOTE: check for one single first execuation
+					if (tween.immediateFirstCall) {
 
-				} else {
+						tween.immediateFirstCall = false
 
-					return true
+					} else {
 
-				}
+						return true
 
-			}
-
-	        let {
-
-				bundle: [,, fx],
-				onStart = null,
-				onUpdate = null,
-				onComplete = null,
-				onThrough = null,
-				canceled = false,
-				forceComplete = false,
-
-			} = tween
-
-	        if (canceled)
-				return false
-
-			if (time > duration)
-				time = duration
-
-			// NOTE: not so simple, read it one more time
-			progress = duration === 0 ? 1 : time < 0 ? 0 : time / duration
-
-			let complete = time === duration || forceComplete
-
-			let value = fx(progress)
-
-			let previous = target[key]
-
-			target[key] = value
-
-			Object.assign(tween, { value, time, progress, frame })
-
-			if (onStart && time - deltaTime <= 0)
-				onStart(tween)
-
-			if (onUpdate)
-				onUpdate(tween)
-
-			if (onThrough) {
-
-				for (let i = 0, n = onThrough.length; i < n; i += 2) {
-
-					let threshold = onThrough[i]
-					let callback = onThrough[i + 1]
-
-					if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
-						callback(tween)
+					}
 
 				}
 
-			}
+		        let {
 
-			if (onComplete && complete)
-				onComplete(tween)
+					bundle: [,, fx],
+					onStart = null,
+					onUpdate = null,
+					onComplete = null,
+					onThrough = null,
+					canceled = false,
+					forceComplete = false,
 
-	        if (complete) {
+				} = tween
 
-				tweenKeyMap.delete(target, key)
+		        if (canceled)
+					return false
 
-				return false
+				if (time > duration)
+					time = duration
 
-			}
+				// NOTE: not so simple, read it one more time
+				progress = duration === 0 ? 1 : time < 0 ? 0 : time / duration
 
-			time += deltaTime
-			frame++
-
-			return true
-
-		}
-
-		: () => {
-
-			if (time < 0) {
-
-				time += deltaTime
-
-				// NOTE: check for one single first execuation
-				if (tween.immediateFirstCall) {
-
-					tween.immediateFirstCall = false
-
-				} else {
-
-					return true
-
-				}
-
-			}
-
-	        let {
-
-				bundle,
-				onStart = null,
-				onUpdate = null,
-				onComplete = null,
-				onThrough = null,
-				canceled = false,
-				forceComplete = false,
-
-			} = tween
-
-	        if (canceled)
-				return false
-
-			if (time > duration)
-				time = duration
-
-			// NOTE: not so simple, read it one more time
-			progress = duration === 0 ? 1 : time < 0 ? 0 : time / duration
-
-			let complete = time === duration || forceComplete
-
-			let previouses = onThrough && bundle.map(([target, key]) => target[key])
-
-			let values = bundle.map(([target, key, fx]) => {
+				let complete = time === duration || forceComplete
 
 				let value = fx(progress)
 
+				let previous = target[key]
+
 				target[key] = value
 
-				return value
+				Object.assign(tween, { value, time, progress, frame })
 
-			})
+				if (onStart && time - deltaTime <= 0)
+					onStart(tween)
 
-			Object.assign(tween, { values, time, progress })
+				if (onUpdate)
+					onUpdate(tween)
 
-			if (onStart && time - deltaTime <= 0)
-				onStart(tween)
+				if (onThrough) {
 
-			if (onUpdate)
-				onUpdate(tween)
+					for (let i = 0, n = onThrough.length; i < n; i += 2) {
 
-			if (onThrough) {
-
-				let onThroughArray = Array.isArray(onThrough) ? onThrough : [onThrough]
-
-				for (let [index, onThroughItem] of onThroughArray.entries()) {
-
-					if (!Array.isArray(onThroughItem))
-						continue
-
-					for (let i = 0, n = onThroughItem.length; i < n; i += 2) {
-
-						let threshold = onThroughItem[i]
-						let callback = onThroughItem[i + 1]
-
-						let value = values[index]
-						let previous = previouses[index]
+						let threshold = onThrough[i]
+						let callback = onThrough[i + 1]
 
 						if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
 							callback(tween)
@@ -468,36 +391,146 @@ function tween(target, key, params = {}) {
 
 				}
 
+				if (onComplete && complete)
+					onComplete(tween)
+
+		        if (complete) {
+
+					tweenKeyMap.delete(target, key)
+
+					resolve()
+
+					return false
+
+				}
+
+				time += deltaTime
+				frame++
+
+				return true
+
 			}
 
-			if (onComplete && complete)
-				onComplete(tween)
+			: () => {
 
-	        if (complete) {
+				if (time < 0) {
 
-				tweenKeyMap.delete(target, key)
+					time += deltaTime
 
-				return false
+					// NOTE: check for one single first execuation
+					if (tween.immediateFirstCall) {
+
+						tween.immediateFirstCall = false
+
+					} else {
+
+						return true
+
+					}
+
+				}
+
+		        let {
+
+					bundle,
+					onStart = null,
+					onUpdate = null,
+					onComplete = null,
+					onThrough = null,
+					canceled = false,
+					forceComplete = false,
+
+				} = tween
+
+		        if (canceled)
+					return false
+
+				if (time > duration)
+					time = duration
+
+				// NOTE: not so simple, read it one more time
+				progress = duration === 0 ? 1 : time < 0 ? 0 : time / duration
+
+				let complete = time === duration || forceComplete
+
+				let previouses = onThrough && bundle.map(([target, key]) => target[key])
+
+				let values = bundle.map(([target, key, fx]) => {
+
+					let value = fx(progress)
+
+					target[key] = value
+
+					return value
+
+				})
+
+				Object.assign(tween, { values, time, progress })
+
+				if (onStart && time - deltaTime <= 0)
+					onStart(tween)
+
+				if (onUpdate)
+					onUpdate(tween)
+
+				if (onThrough) {
+
+					let onThroughArray = Array.isArray(onThrough) ? onThrough : [onThrough]
+
+					for (let [index, onThroughItem] of onThroughArray.entries()) {
+
+						if (!Array.isArray(onThroughItem))
+							continue
+
+						for (let i = 0, n = onThroughItem.length; i < n; i += 2) {
+
+							let threshold = onThroughItem[i]
+							let callback = onThroughItem[i + 1]
+
+							let value = values[index]
+							let previous = previouses[index]
+
+							if (value >= threshold && previous < threshold || value <= threshold && previous > threshold)
+								callback(tween)
+
+						}
+
+					}
+
+				}
+
+				if (onComplete && complete)
+					onComplete(tween)
+
+		        if (complete) {
+
+					tweenKeyMap.delete(target, key)
+
+					resolve()
+
+					return false
+
+				}
+
+				time += deltaTime
+				frame++
+
+				return true
 
 			}
 
-			time += deltaTime
-			frame++
+		if (immediate) {
 
-			return true
+			if (time < 0)
+				tween.immediateFirstCall = true
+
+			callback()
 
 		}
 
-	if (immediate) {
+		internalUpdateStack.add(callback)
 
-		if (time < 0)
-			tween.immediateFirstCall = true
-
-		callback()
-
-	}
-
-	internalUpdateStack.add(callback)
+	})
 
 }
 

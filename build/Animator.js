@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2018-06-21 15:31 GMT(+2)
+	2018-06-29 16:57 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -534,6 +534,9 @@ let easeKeyMap = new KeyMap();
 
 function ease(target, key, targetValue, options = {}) {
 
+	if (!target || typeof target !== 'object')
+		throw 'target is not an object'
+
 	return new Promise((resolve) => {
 
 		cancelTweensOf(target, key);
@@ -644,7 +647,7 @@ function ease(target, key, targetValue, options = {}) {
 				easeKeyMap.delete(target, key);
 
 				resolve();
-				
+
 				return false
 
 			}
@@ -691,6 +694,9 @@ let tweenKeyMap = new KeyMap();
 
 function tween(target, key, params = {}) {
 
+	if (!target || typeof target !== 'object')
+		throw 'target is not an object'
+		
 	return new Promise((resolve) => {
 
 		cancelEasingsOf(target, key);

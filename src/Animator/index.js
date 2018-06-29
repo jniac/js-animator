@@ -141,6 +141,9 @@ let easeKeyMap = new KeyMap()
 
 function ease(target, key, targetValue, options = {}) {
 
+	if (!target || typeof target !== 'object')
+		throw 'target is not an object'
+
 	return new Promise((resolve) => {
 
 		cancelTweensOf(target, key)
@@ -251,7 +254,7 @@ function ease(target, key, targetValue, options = {}) {
 				easeKeyMap.delete(target, key)
 
 				resolve()
-				
+
 				return false
 
 			}
@@ -300,6 +303,9 @@ let tweenKeyMap = new KeyMap()
 
 function tween(target, key, params = {}) {
 
+	if (!target || typeof target !== 'object')
+		throw 'target is not an object'
+		
 	return new Promise((resolve) => {
 
 		cancelEasingsOf(target, key)

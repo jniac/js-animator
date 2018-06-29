@@ -142,7 +142,7 @@ let easeKeyMap = new KeyMap()
 function ease(target, key, targetValue, options = {}) {
 
 	if (!target || typeof target !== 'object')
-		throw 'target is not an object'
+		throw `Animator.ease() target is not an object (key: ${key})`
 
 	return new Promise((resolve) => {
 
@@ -304,8 +304,8 @@ let tweenKeyMap = new KeyMap()
 function tween(target, key, params = {}) {
 
 	if (!target || typeof target !== 'object')
-		throw 'target is not an object'
-		
+		throw `Animator.ease() target is not an object (key: ${key})`
+
 	return new Promise((resolve) => {
 
 		cancelEasingsOf(target, key)

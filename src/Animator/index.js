@@ -304,7 +304,7 @@ let tweenKeyMap = new KeyMap()
 function tween(target, key, params = {}) {
 
 	if (!target || typeof target !== 'object')
-		throw `Animator.ease() target is not an object (key: ${key})`
+		throw `Animator.tween() target is not an object (key: ${key})`
 
 	return new Promise((resolve) => {
 

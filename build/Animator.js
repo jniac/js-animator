@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2018-06-29 17:00 GMT(+2)
+	2018-08-29 22:38 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -548,30 +548,30 @@ function ease(target, key, targetValue, options = {}) {
 
 		let ease = Object.assign(options, { target, key, targetValue, epsilon });
 
-	    if (easeKeyMap.has(target, key)) {
+		if (easeKeyMap.has(target, key)) {
 
-	        easeKeyMap.assign(target, key, ease);
+			easeKeyMap.assign(target, key, ease);
 
-	        return
+			return
 
-	    }
+		}
 
-	    easeKeyMap.set(target, key, ease);
+		easeKeyMap.set(target, key, ease);
 
 		let { delay = 0 } = options;
 
 		let time = -delay, frame = 0;
 
-	    internalUpdateStack.add(() => {
+		internalUpdateStack.add(() => {
 
 			time += deltaTime;
 
-	        if (time < 0)
-	            return true
+			if (time < 0)
+				return true
 
 			let ease = easeKeyMap.get(target, key);
 
-	        let {
+			let {
 
 				targetValue,
 				epsilon,
@@ -585,7 +585,7 @@ function ease(target, key, targetValue, options = {}) {
 
 			} = ease;
 
-	        if (canceled) {
+			if (canceled) {
 
 				easeKeyMap.delete(target, key);
 
@@ -595,7 +595,7 @@ function ease(target, key, targetValue, options = {}) {
 
 			}
 
-	        let value = target[key];
+			let value = target[key];
 
 			let previous = value;
 
@@ -642,7 +642,7 @@ function ease(target, key, targetValue, options = {}) {
 			if (onComplete && complete)
 				onComplete(ease);
 
-	        if (complete) {
+			if (complete) {
 
 				easeKeyMap.delete(target, key);
 
@@ -656,7 +656,7 @@ function ease(target, key, targetValue, options = {}) {
 
 			return true
 
-	    });
+		});
 
 	})
 
@@ -695,7 +695,7 @@ let tweenKeyMap = new KeyMap();
 function tween(target, key, params = {}) {
 
 	if (!target || typeof target !== 'object')
-		throw `Animator.ease() target is not an object (key: ${key})`
+		throw `Animator.tween() target is not an object (key: ${key})`
 
 	return new Promise((resolve) => {
 
@@ -720,7 +720,7 @@ function tween(target, key, params = {}) {
 
 			? () => {
 
-		        if (time < 0) {
+				if (time < 0) {
 
 					time += deltaTime;
 
@@ -737,7 +737,7 @@ function tween(target, key, params = {}) {
 
 				}
 
-		        let {
+				let {
 
 					bundle: [,, fx],
 					onStart = null,
@@ -749,7 +749,7 @@ function tween(target, key, params = {}) {
 
 				} = tween;
 
-		        if (canceled)
+				if (canceled)
 					return false
 
 				if (time > duration)
@@ -791,7 +791,7 @@ function tween(target, key, params = {}) {
 				if (onComplete && complete)
 					onComplete(tween);
 
-		        if (complete) {
+				if (complete) {
 
 					tweenKeyMap.delete(target, key);
 
@@ -827,7 +827,7 @@ function tween(target, key, params = {}) {
 
 				}
 
-		        let {
+				let {
 
 					bundle,
 					onStart = null,
@@ -839,7 +839,7 @@ function tween(target, key, params = {}) {
 
 				} = tween;
 
-		        if (canceled)
+				if (canceled)
 					return false
 
 				if (time > duration)
@@ -899,7 +899,7 @@ function tween(target, key, params = {}) {
 				if (onComplete && complete)
 					onComplete(tween);
 
-		        if (complete) {
+				if (complete) {
 
 					tweenKeyMap.delete(target, key);
 

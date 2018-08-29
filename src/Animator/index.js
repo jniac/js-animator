@@ -7,6 +7,9 @@ let deltaTime = 1 / 60
 let frame = 0
 let time = 0
 let paused = false
+let defaultEaseDecay = .01
+
+const setDefaultEaseDecay = value => defaultEaseDecay = value
 
 let internalUpdateStack = new Stack()
 let externalUpdateStack = new Stack()
@@ -186,7 +189,7 @@ function ease(target, key, targetValue, options = {}) {
 				onUpdate = null,
 				onComplete = null,
 				onThrough = null,
-				decay = .01,
+				decay = defaultEaseDecay,
 				canceled = false,
 				forceComplete = false,
 
@@ -582,6 +585,8 @@ export {
 	frame,
 	paused,
 
+	setDefaultEaseDecay,
+
 	onUpdate,
 	onTimeout,
 	onFrameout,
@@ -610,6 +615,8 @@ let Animator = {
 	get frame() { return frame },
 	set paused(value) { paused = value },
 	get paused() { return paused },
+
+	setDefaultEaseDecay,
 
 	onUpdate,
 	onTimeout,

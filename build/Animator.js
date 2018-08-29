@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2018-08-29 22:38 GMT(+2)
+	2018-08-29 22:59 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -400,6 +400,9 @@ let deltaTime = 1 / 60;
 let frame = 0;
 let time = 0;
 let paused = false;
+let defaultEaseDecay = .01;
+
+const setDefaultEaseDecay = value => defaultEaseDecay = value;
 
 let internalUpdateStack = new Stack();
 let externalUpdateStack = new Stack();
@@ -579,7 +582,7 @@ function ease(target, key, targetValue, options = {}) {
 				onUpdate = null,
 				onComplete = null,
 				onThrough = null,
-				decay = .01,
+				decay = defaultEaseDecay,
 				canceled = false,
 				forceComplete = false,
 
@@ -974,6 +977,8 @@ let Animator = {
 	set paused(value) { paused = value; },
 	get paused() { return paused },
 
+	setDefaultEaseDecay,
+
 	onUpdate,
 	onTimeout,
 	onFrameout,
@@ -995,4 +1000,4 @@ let Animator = {
 };
 
 export default Animator;
-export { updateFrame, time, frame, paused, onUpdate, onTimeout, onFrameout, during, ease, getEasingsOf, cancelEasingsOf, forceCompleteEasingsOf, easeKeyMap, tween, tweenKeyMap, getTweensOf, cancelTweensOf, cancel };
+export { updateFrame, time, frame, paused, setDefaultEaseDecay, onUpdate, onTimeout, onFrameout, during, ease, getEasingsOf, cancelEasingsOf, forceCompleteEasingsOf, easeKeyMap, tween, tweenKeyMap, getTweensOf, cancelTweensOf, cancel };

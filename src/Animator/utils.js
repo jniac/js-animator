@@ -14,6 +14,10 @@ export function parseNumber(s) {
 
 }
 
+/**
+ * Examples:
+ * 'inout,5' 'in,2' 'out,4'
+ */
 export function resolveEase(ease) {
 
 	if (typeof ease === 'string') {

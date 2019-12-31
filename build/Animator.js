@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2018-08-29 22:59 GMT(+2)
+	2019-12-31 11:32 GMT(+1)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -242,6 +242,10 @@ function parseNumber(s) {
 
 }
 
+/**
+ * Examples:
+ * 'inout,5' 'in,2' 'out,4'
+ */
 function resolveEase(ease) {
 
 	if (typeof ease === 'string') {
@@ -355,22 +359,6 @@ function resolveBundle(target, key, from, to, ease, override) {
     return { isMultiple: !!keys, bundle }
 
 }
-
-
-
-
-
-
-
-
-
-/**
- * https://jsfiddle.net/jniac/1qpum68z/
- * @param x the value
- * @param p the power
- * @param m the middle of the ease
- */
-
 
 /**
  * binded version of gain(), usage:
@@ -538,7 +526,7 @@ let easeKeyMap = new KeyMap();
 function ease(target, key, targetValue, options = {}) {
 
 	if (!target || typeof target !== 'object')
-		throw `Animator.ease() target is not an object (key: ${key})`
+		throw `Animator.ease() target (${target}) is not an object (key: ${key})`
 
 	return new Promise((resolve) => {
 
@@ -685,12 +673,6 @@ function forceCompleteEasingsOf(target, key = null) {
 
 }
 
-
-
-
-
-// TWEEN
-
 let tweenCount = 0;
 
 let tweenKeyMap = new KeyMap();
@@ -698,7 +680,7 @@ let tweenKeyMap = new KeyMap();
 function tween(target, key, params = {}) {
 
 	if (!target || typeof target !== 'object')
-		throw `Animator.tween() target is not an object (key: ${key})`
+		throw `Animator.tween() target (${target}) is not an object (key: ${key})`
 
 	return new Promise((resolve) => {
 
@@ -976,6 +958,8 @@ let Animator = {
 	get frame() { return frame },
 	set paused(value) { paused = value; },
 	get paused() { return paused },
+
+	resolveEase,
 
 	setDefaultEaseDecay,
 

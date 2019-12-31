@@ -40,6 +40,8 @@
             import Sprite from './Sprite.js'
             import ots from './ots.js'
 
+			Object.assign(window, { Animator })
+
             for (let [index, block] of document.querySelectorAll('.block').entries())
                 block.innerHTML = index
 

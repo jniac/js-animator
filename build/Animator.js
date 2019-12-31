@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2019-12-31 11:32 GMT(+1)
+	2019-12-31 11:40 GMT(+1)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -525,8 +525,19 @@ let easeKeyMap = new KeyMap();
 
 function ease(target, key, targetValue, options = {}) {
 
-	if (!target || typeof target !== 'object')
-		throw `Animator.ease() target (${target}) is not an object (key: ${key})`
+	if (!target || typeof target !== 'object') {
+
+		if (params.throwIfNull === false) {
+
+			target = {};
+
+		} else {
+
+			throw new Error(`Animator.ease() target (${target}) is not an object (key: ${key})`)
+
+		}
+
+	}
 
 	return new Promise((resolve) => {
 
@@ -679,8 +690,19 @@ let tweenKeyMap = new KeyMap();
 
 function tween(target, key, params = {}) {
 
-	if (!target || typeof target !== 'object')
-		throw `Animator.tween() target (${target}) is not an object (key: ${key})`
+	if (!target || typeof target !== 'object') {
+
+		if (params.throwIfNull === false) {
+
+			target = {};
+
+		} else {
+
+			throw new Error(`Animator.tween() target (${target}) is not an object (key: ${key})`)
+
+		}
+
+	}
 
 	return new Promise((resolve) => {
 

@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2019-12-31 11:40 GMT(+1)
+	2020-05-14 09:06 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -539,6 +539,9 @@ function ease(target, key, targetValue, options = {}) {
 
 	}
 
+	if (Symbol.iterator in target && options.autoIterate !== false)
+		return [...target].map(value => ease(value, key, targetValue, options))
+
 	return new Promise((resolve) => {
 
 		cancelTweensOf(target, key);
@@ -703,6 +706,9 @@ function tween(target, key, params = {}) {
 		}
 
 	}
+
+	if (Symbol.iterator in target && params.autoIterate !== false)
+		return [...target].map(value => tween(value, key, params))
 
 	return new Promise((resolve) => {
 
@@ -1006,4 +1012,4 @@ let Animator = {
 };
 
 export default Animator;
-export { updateFrame, time, frame, paused, setDefaultEaseDecay, onUpdate, onTimeout, onFrameout, during, ease, getEasingsOf, cancelEasingsOf, forceCompleteEasingsOf, easeKeyMap, tween, tweenKeyMap, getTweensOf, cancelTweensOf, cancel };
+export { cancel, cancelEasingsOf, cancelTweensOf, during, ease, easeKeyMap, forceCompleteEasingsOf, frame, getEasingsOf, getTweensOf, onFrameout, onTimeout, onUpdate, paused, setDefaultEaseDecay, time, tween, tweenKeyMap, updateFrame };

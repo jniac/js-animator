@@ -158,6 +158,9 @@ function ease(target, key, targetValue, options = {}) {
 
 	}
 
+	if (Symbol.iterator in target && options.autoIterate !== false)
+		return [...target].map(value => ease(value, key, targetValue, options))
+
 	return new Promise((resolve) => {
 
 		cancelTweensOf(target, key)
@@ -330,6 +333,9 @@ function tween(target, key, params = {}) {
 		}
 
 	}
+
+	if (Symbol.iterator in target && params.autoIterate !== false)
+		return [...target].map(value => tween(value, key, params))
 
 	return new Promise((resolve) => {
 

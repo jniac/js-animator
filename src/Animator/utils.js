@@ -150,8 +150,6 @@ export function resolveBundleEntry(target, key, from, to, ease, override) {
 		type = resolveType(from)
 	}
 
-	console.log(from, to)
-
     let fx = override ||
 		type === 'number' ? (x => from + (to - from) * ease(x)) :
 		type === 'hexColor' ? (x => interpolateRRGGBB(from, to, ease(x))) :

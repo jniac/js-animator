@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2020-05-14 09:06 GMT(+2)
+	2020-05-17 18:18 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -282,24 +282,24 @@ function resolveEase(ease) {
 
 }
 
-function resolveValue(value, currentValue) {
+function resolveRelativeValue(value, currentValue) {
 
 	if (typeof value === 'number')
 		return value
 
 	if (typeof value === 'string') {
 
-		if (value.slice(0, 2) === '+=')
-			return currentValue + parseFloat(value.slice(2))
+		if (value.substring(0, 2) === '+=')
+			return currentValue + parseFloat(value.substring(2))
 
-		if (value.slice(0, 2) === '-=')
-			return currentValue - parseFloat(value.slice(2))
+		if (value.substring(0, 2) === '-=')
+			return currentValue - parseFloat(value.substring(2))
 
-		if (value.slice(0, 2) === '*=')
-			return currentValue * parseFloat(value.slice(2))
+		if (value.substring(0, 2) === '*=')
+			return currentValue * parseFloat(value.substring(2))
 
-		if (value.slice(0, 2) === '/=')
-			return currentValue / parseFloat(value.slice(2))
+		if (value.substring(0, 2) === '/=')
+			return currentValue / parseFloat(value.substring(2))
 
 	}
 
@@ -307,23 +307,83 @@ function resolveValue(value, currentValue) {
 
 }
 
+function resolveType(value) {
+
+	const type = typeof value;
+
+	if (type === 'number')
+		return 'number'
+
+	if (type === 'string') {
+
+		if (/^[\+\-\*\/]=/.test(value))
+			return 'number'
+
+		if (/^#?[\da-f]{6}$/i.test(value))
+			return 'hexColor'
+	}
+
+	throw new Error(`oups type is not supported ${type}:${value && value.constructor.name}`)
+}
+
+function interpolateRRGGBB(color1, color2, x, { prependHash = true} = {}) {
+
+	if (color1[0] === '#')
+		color1 = color1.substring(1);
+
+	if (color2[0] === '#')
+		color2 = color2.substring(1);
+
+	const r1 = parseInt(color1.substring(0, 2), 16) || 0;
+	const g1 = parseInt(color1.substring(2, 4), 16) || 0;
+	const b1 = parseInt(color1.substring(4, 6), 16) || 0;
+
+	const r2 = parseInt(color2.substring(0, 2), 16) || 0;
+	const g2 = parseInt(color2.substring(2, 4), 16) || 0;
+	const b2 = parseInt(color2.substring(4, 6), 16) || 0;
+
+	const x2 = 1 - x;
+	const r = Math.round(r1 * x2 + r2 * x);
+	const g = Math.round(g1 * x2 + g2 * x);
+	const b = Math.round(b1 * x2 + b2 * x);
+
+	return ((prependHash ? '#' : '')
+		+ r.toString(16).padStart(2, '0')
+		+ g.toString(16).padStart(2, '0')
+		+ b.toString(16).padStart(2, '0'))
+}
+
 function resolveBundleEntry(target, key, from, to, ease, override) {
+
+    let type = null;
 
     if (to !== undefined && from === undefined) {
 
+		type = resolveType(to);
         from = target[key];
-        to = resolveValue(to, from);
 
-    }
+		if (type === 'number')
+        	to = resolveRelativeValue(to, from);
 
-    if (to === undefined && from !== undefined) {
+    } else if (to === undefined && from !== undefined) {
 
+		type = resolveType(from);
         to = target[key];
-        from = resolveValue(from, to);
 
-    }
+		if (type === 'number')
+        	from = resolveRelativeValue(from, to);
 
-    let fx = override || (x => from + (to - from) * ease(x));
+    } else {
+
+		type = resolveType(from);
+	}
+
+	console.log(from, to);
+
+    let fx = override ||
+		type === 'number' ? (x => from + (to - from) * ease(x)) :
+		type === 'hexColor' ? (x => interpolateRRGGBB(from, to, ease(x))) :
+		() => {};
 
     return [target, key, fx]
 
@@ -725,7 +785,23 @@ function tween(target, key, params = {}) {
 
 		let progress = 0, time = -delay, frame = 0;
 
-		let tween = { id: tweenCount++, target, key, time, progress, frame, isMultiple, bundle, onStart, onUpdate, onThrough, onComplete, canceled: false, forceComplete: false, params };
+		let tween = {
+			id:tweenCount++,
+			target,
+			key,
+			time,
+			progress,
+			frame,
+			isMultiple,
+			bundle,
+			onStart,
+			onUpdate,
+			onThrough,
+			onComplete,
+			canceled: false,
+			forceComplete: false,
+			params
+		};
 
 		tweenKeyMap.set(target, key, tween);
 

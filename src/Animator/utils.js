@@ -95,7 +95,7 @@ function resolveType(value) {
 			return 'hexColor'
 	}
 
-	throw new Error(`oups type is not supported ${type}:${value?.constructor.name}`)
+	throw new Error(`oups type is not supported ${type}:${value && value.constructor.name}`)
 }
 
 function interpolateRRGGBB(color1, color2, x, { prependHash = true} = {}) {

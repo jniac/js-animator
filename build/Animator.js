@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2020-05-17 18:18 GMT(+2)
+	2020-05-17 19:19 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -377,8 +377,6 @@ function resolveBundleEntry(target, key, from, to, ease, override) {
 
 		type = resolveType(from);
 	}
-
-	console.log(from, to);
 
     let fx = override ||
 		type === 'number' ? (x => from + (to - from) * ease(x)) :

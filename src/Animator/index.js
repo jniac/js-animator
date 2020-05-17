@@ -352,7 +352,23 @@ function tween(target, key, params = {}) {
 
 		let progress = 0, time = -delay, frame = 0
 
-		let tween = { id: tweenCount++, target, key, time, progress, frame, isMultiple, bundle, onStart, onUpdate, onThrough, onComplete, canceled: false, forceComplete: false, params }
+		let tween = {
+			id:tweenCount++,
+			target,
+			key,
+			time,
+			progress,
+			frame,
+			isMultiple,
+			bundle,
+			onStart,
+			onUpdate,
+			onThrough,
+			onComplete,
+			canceled: false,
+			forceComplete: false,
+			params
+		}
 
 		tweenKeyMap.set(target, key, tween)
 

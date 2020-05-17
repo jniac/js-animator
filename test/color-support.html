@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+    </head>
+    <body>
+        <div style="width:200px; height:200px;"></div>
+
+        <script type="module">
+
+            import Animator from '../src/Animator/index.js'
+
+            const target = {
+                _color: '',
+                get backgroundColor() { return this._color },
+                set backgroundColor(value) { document.querySelector('div').style.backgroundColor = this._color = value },
+            }
+
+            Animator.tween(target, 'backgroundColor', {
+                from: '#00ccff',
+                to: '#ffcc00',
+            })
+
+            Object.assign(window, {
+                Animator,
+                target,
+            })
+
+            document.querySelector('div').onclick = () => {
+
+                Animator.tween(target, 'backgroundColor', {
+                    to: '#' + Math.round(0xffffff * Math.random()).toString(16).padStart(6, '0'),
+                })
+            }
+
+        </script>
+    </body>
+</html>

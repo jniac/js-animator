@@ -1,4 +1,4 @@
-const identity = x => x
+import * as Ease from './Ease.js'
 
 export function parseNumber(s) {
 
@@ -26,15 +26,17 @@ export function resolveEase(ease) {
 
 		params = params.map(parseNumber)
 
-		if (/gain|inout/.test(fn))
-			return gainBind(...params)
+		// if (/gain|inout/.test(fn))
+		// 	return x => gain(x, ...params)
+
+		if (fn in Ease)
+			return x => Ease[fn](x, ...params)
 
 		if (fn === 'in') {
 
 			let pow = params[0] || 2
 
 			return x => x ** pow
-
 		}
 
 		if (fn === 'out') {
@@ -42,16 +44,13 @@ export function resolveEase(ease) {
 			let pow = params[0] || 2
 
 			return x => 1 - (1 - x) ** pow
-
 		}
-
 	}
 
 	if (typeof ease === 'function')
 		return ease
 
-	return identity
-
+	return Ease.identity
 }
 
 export function resolveRelativeValue(value, currentValue) {
@@ -224,19 +223,6 @@ export function gain(x, p = 3, i = .5, clamp = true) {
  * f = Mth.gainBind(3, 1/3)
  * y = f(x)
  */
-export function gainBind(p = 3, i = .5, clamp = true) {
-
-	return x => {
-
-		if (clamp)
-			x = x < 0 ? 0 : x > 1 ? 1 : x
-
-		return x === i
-			? x
-			: x < i
-			? 1 / Math.pow(i, p - 1) * Math.pow(x, p)
-			: 1 - 1 / Math.pow(1 - i, p - 1) * Math.pow(1 - x, p)
-
-	}
-
-}
+export const gainBind = (p = 3, i = .5, clamp = true) => (
+    x => gain(x, p, i, clamp)
+)

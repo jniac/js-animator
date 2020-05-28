@@ -82,7 +82,7 @@ Animator.cancel(obj)
 
 options:
 ```javascript
-// cancel animation for only one property 
+// cancel animation for only one property
 Animator.cancel(obj, 'x')
 ```
 
@@ -91,6 +91,6 @@ Animator.cancel(obj, 'x')
 
 ### build
 ```shell
-rollup -c
+rollup -c && git add build && git commit -m "Build" && git push
 ```
 et voilà!

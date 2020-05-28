@@ -34,6 +34,8 @@
         <div class="block"></div>
         <div class="block"></div>
         <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
         <script type="module">
 
             import Animator from '../src/Animator/index.js'
@@ -150,27 +152,32 @@
             Animator.tween(B(10), 'x', { override: x => 300 + sinOut(x, 100) })
             Animator.tween(B(11), 'x', { override: x => 300 + sinOut(x, 100, 6, 3), duration: 2 })
 
-            Animator.tween(B(12), 'x,rotation', { to:[300, 360], ease: 'inout,4,1/4' })
-            Animator.tween(B(12), 'y', { override: x => sinOut(x, 40) })
+            Animator.tween(B(12), 'x,rotation', { to:[300, 360], ease:'inout,4,1/4' })
+            Animator.tween(B(12), 'y', { override:x => sinOut(x, 40) })
 
             console.log(Animator.getTweensOf(B(12)))
             console.log(Animator.getTweensOf(B(12), 'y'))
 
-            Animator.tween(B(13), 'rotation,x', { to:[360, 300], ease: 'inout,4,1/4', onThrough:[,[100, ({ target }) => Animator.cancelTweensOf(target)]] })
-            Animator.tween(B(13), 'y', { override: x => sinOut(x, 40) })
+            Animator.tween(B(13), 'rotation,x', { to:[360, 300], ease:'inout,4,1/4', onThrough:[,[100, ({ target }) => Animator.cancelTweensOf(target)]] })
+            Animator.tween(B(13), 'y', { override:x => sinOut(x, 40) })
 
-            Animator.tween(B(14), 'rotation,x', { to:[360, 300], ease: 'inout,4,1/4', onThrough:[,[100, ({ target }) => Animator.cancelTweensOf(target, 'rotation,x')]] })
-            Animator.tween(B(14), 'y', { override: x => sinOut(x, 40) })
+            Animator.tween(B(14), 'rotation,x', { to:[360, 300], ease:'inout,4,1/4', onThrough:[,[100, ({ target }) => Animator.cancelTweensOf(target, 'rotation,x')]] })
+            Animator.tween(B(14), 'y', { override:x => sinOut(x, 40) })
 
-            Animator.tween(B(15), 'x', { to: 300, delay: 5, duration: 30 })
+            Animator.tween(B(15), 'x', { to:300, delay:5, duration:30 })
 
             // test duration = 0 (wo/w delay)
-            Animator.tween(B(16), 'x', { to: 300, duration: 0 })
-            Animator.tween(B(17), 'x', { to: 300, delay: 1, duration: 0 })
+            Animator.tween(B(16), 'x', { to:300, duration:0 })
+            Animator.tween(B(17), 'x', { to:300, delay:1, duration:0 })
 
             // test immediate with delay
-            Animator.tween(B(18), 'x', { from: 300, delay: 1 })
-            Animator.tween(B(19), 'x,rotation', { from: [300,180], delay: 1 })
+            Animator.tween(B(18), 'x', { from:300, delay:1 })
+            Animator.tween(B(19), 'x,rotation', { from:[300,180], delay:1 })
+
+            // test 'pcurve'
+            Animator.tween(B(20), 'x,rotation', { duration:3, to:[300,180], ease:'pcurve,1.5,4' })
+            // check
+            Animator.tween(B(21), 'x,rotation', { duration:0, to:[300,180], ease:'pcurve,1.5,4' })
 
         </script>
     </body>

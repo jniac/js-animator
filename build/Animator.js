@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2020-05-17 19:19 GMT(+2)
+	2020-05-28 11:04 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
@@ -30,215 +30,257 @@
 
 class KeyMap {
 
-    constructor() {
+	constructor() {
 
-        this.map = new Map();
+		this.map = new Map();
 
-    }
+	}
 
-    get size() { return this.map.size }
+	get size() { return this.map.size }
 
-    has(target, key) {
+	has(target, key) {
 
-        let dict = this.map.get(target);
+		let dict = this.map.get(target);
 
-        return !!(dict && key in dict)
+		return !!(dict && key in dict)
 
-    }
+	}
 
-    set(target, key, object) {
+	set(target, key, object) {
 
-        let dict = this.map.get(target);
+		let dict = this.map.get(target);
 
-        if (dict) {
+		if (dict) {
 
-            dict[key] = object;
+			dict[key] = object;
 
-        } else {
+		} else {
 
-            this.map.set(target, { [key]: object });
+			this.map.set(target, { [key]: object });
 
-        }
+		}
 
-    }
+	}
 
-    assign(target, key, props) {
+	assign(target, key, props) {
 
-        let object = this.get(target, key, { create: true });
+		let object = this.get(target, key, { create: true });
 
-        Object.assign(object, props);
+		Object.assign(object, props);
 
-    }
+	}
 
-    get(target, key, { create = false } = {}) {
+	get(target, key, { create = false } = {}) {
 
-        let dict = this.map.get(target);
+		let dict = this.map.get(target);
 
-        if (!dict && !create)
-            return undefined
+		if (!dict && !create)
+			return undefined
 
-        if (!dict) {
+		if (!dict) {
 
-            dict = {};
-            this.map.set(target, dict);
+			dict = {};
+			this.map.set(target, dict);
 
-        }
+		}
 
-        let value = dict[key];
+		let value = dict[key];
 
-        if (!value && !create)
-            return undefined
+		if (!value && !create)
+			return undefined
 
-        if (!value) {
+		if (!value) {
 
-            value = {};
-            dict[key] = value;
+			value = {};
+			dict[key] = value;
 
-        }
+		}
 
-        return value
+		return value
 
-    }
+	}
 
-    delete (target, key) {
+	delete (target, key) {
 
-        let dict = this.map.get(target);
+		let dict = this.map.get(target);
 
-        if (dict) {
+		if (dict) {
 
-            delete dict[key];
+			delete dict[key];
 
-            if (Object.keys(dict).length === 0)
-                this.map.delete(target);
+			if (Object.keys(dict).length === 0)
+				this.map.delete(target);
 
-        }
+		}
 
-    }
+	}
 
-    *[Symbol.iterator]() {
+	*[Symbol.iterator]() {
 
-        for (let [target, dict] of this.map) {
+		for (let [target, dict] of this.map) {
 
-            for (let key in dict)
-                yield [target, key, dict[key]];
+			for (let key in dict)
+				yield [target, key, dict[key]];
 
-        }
+		}
 
-    }
+	}
 
-    entries(target = null, key = null) {
+	entries(target = null, key = null) {
 
-        let entries = [];
+		let entries = [];
 
-    	for (let [currentTarget, dict] of this.map) {
+		for (let [currentTarget, dict] of this.map) {
 
-    		if (!target || target === currentTarget) {
+			if (!target || target === currentTarget) {
 
-                for (let currentKey in dict) {
+				for (let currentKey in dict) {
 
-    				if (!key || key === currentKey)
-                        entries.push([currentTarget, currentKey, dict[currentKey]]);
+					if (!key || key === currentKey)
+						entries.push([currentTarget, currentKey, dict[currentKey]]);
 
-    			}
+				}
 
-    		}
+			}
 
-    	}
+		}
 
-    	return entries
+		return entries
 
-    }
+	}
 
-    values(target = null, key = null) {
+	values(target = null, key = null) {
 
-        let values = [];
+		let values = [];
 
-        for (let [currentTarget, dict] of this.map) {
+		for (let [currentTarget, dict] of this.map) {
 
-            if (!target || target === currentTarget) {
+			if (!target || target === currentTarget) {
 
-                for (let currentKey in dict) {
+				for (let currentKey in dict) {
 
-                    if (!key || key === currentKey)
-                        values.push(dict[currentKey]);
+					if (!key || key === currentKey)
+						values.push(dict[currentKey]);
 
-                }
+				}
 
-            }
+			}
 
-        }
+		}
 
-        return values
+		return values
 
-    }
+	}
 
 }
 
 class Stack {
 
-    constructor() {
+	constructor() {
 
-        this.array = [];
-        this.frame = 0;
+		this.array = [];
+		this.frame = 0;
 
-    }
+	}
 
-    update() {
+	update() {
 
-        let { array, frame } = this;
+		let { array, frame } = this;
 
-        let tmp = this.array;
-    	this.array = [];
-    	this.array = tmp.filter(({ callback, thisArg, args, skip }) => {
+		let tmp = this.array;
+		this.array = [];
+		this.array = tmp.filter(({ callback, thisArg, args, skip }) => {
 
-    		if (frame % (1 + skip))
-    			return true
+			if (frame % (1 + skip))
+				return true
 
-    		return callback.apply(thisArg, args) !== false
+			return callback.apply(thisArg, args) !== false
 
-    	}).concat(this.array);
+		}).concat(this.array);
 
-        frame++;
+		frame++;
 
-        Object.assign(this, { frame });
+		Object.assign(this, { frame });
 
-    }
+	}
 
-    add(callback, { thisArg = null, args = null, skip = 0 } = {}) {
+	add(callback, { thisArg = null, args = null, skip = 0 } = {}) {
 
-    	if (!callback)
-    		return
+		if (!callback)
+			return
 
-    	let listener = {
+		let listener = {
 
-    		callback,
-    		thisArg,
-            args,
-    		skip,
+			callback,
+			thisArg,
+			args,
+			skip,
 
-    	};
+		};
 
-    	this.array.push(listener);
+		this.array.push(listener);
 
-    	return listener
+		return listener
 
-    }
+	}
 
 }
 
 const identity = x => x;
 
+/**
+ * https://jsfiddle.net/jniac/1qpum68z/
+ * @param  {Number} x the value
+ * @param  {Number} p the power
+ * @param  {Number} m the middle of the ease
+ * @return {Number}
+ */
+const inout = (x, p = 3, i = .5, clamp = true) => {
+
+	if (clamp)
+		x = x < 0 ? 0 : x > 1 ? 1 : x;
+
+	return x === i
+		? x
+		: x < i
+		? 1 / Math.pow(i, p - 1) * Math.pow(x, p)
+		: 1 - 1 / Math.pow(1 - i, p - 1) * Math.pow(1 - x, p)
+};
+
+/**
+ * https://www.desmos.com/calculator/9h6o072i43
+ * @param  {Number} x
+ * @param  {Number} [a=3] power in
+ * @param  {Number} [b=5] power out
+ * @param  {Number} [k=-1] k, a scalar, is slow to compute, could be defined for faster predefined ease
+ * @return {Number}
+ */
+const pcurve = (x, a = 3, b = 5, k = -1) => {
+
+	return (x <= 0 || x >= 1) ? 0 : (
+		k !== -1 ? k :
+		Math.pow(a + b, a + b) / (Math.pow(a, a) * Math.pow(b, b))
+	) * Math.pow(x, a) * Math.pow(1 - x, b)
+};
+
+var Ease = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	identity: identity,
+	inout: inout,
+	pcurve: pcurve
+});
+
 function parseNumber(s) {
 
-    if (s.includes('/')) {
+	if (s.includes('/')) {
 
-        let [a, b] = s.split('/');
+		let [a, b] = s.split('/');
 
-        return parseFloat(a) / parseFloat(b)
+		return parseFloat(a) / parseFloat(b)
 
-    }
+	}
 
-    return parseFloat(s)
+	return parseFloat(s)
 
 }
 
@@ -254,15 +296,17 @@ function resolveEase(ease) {
 
 		params = params.map(parseNumber);
 
-		if (/gain|inout/.test(fn))
-			return gainBind(...params)
+		// if (/gain|inout/.test(fn))
+		// 	return x => gain(x, ...params)
+
+		if (fn in Ease)
+			return x => Ease[fn](x, ...params)
 
 		if (fn === 'in') {
 
 			let pow = params[0] || 2;
 
 			return x => x ** pow
-
 		}
 
 		if (fn === 'out') {
@@ -270,16 +314,13 @@ function resolveEase(ease) {
 			let pow = params[0] || 2;
 
 			return x => 1 - (1 - x) ** pow
-
 		}
-
 	}
 
 	if (typeof ease === 'function')
 		return ease
 
 	return identity
-
 }
 
 function resolveRelativeValue(value, currentValue) {
@@ -355,36 +396,38 @@ function interpolateRRGGBB(color1, color2, x, { prependHash = true} = {}) {
 
 function resolveBundleEntry(target, key, from, to, ease, override) {
 
-    let type = null;
+	if (override)
+		return [target, key, override]
 
-    if (to !== undefined && from === undefined) {
+	let type = null;
+
+	if (to !== undefined && from === undefined) {
 
 		type = resolveType(to);
-        from = target[key];
+		from = target[key];
 
 		if (type === 'number')
-        	to = resolveRelativeValue(to, from);
+			to = resolveRelativeValue(to, from);
 
-    } else if (to === undefined && from !== undefined) {
+	} else if (to === undefined && from !== undefined) {
 
 		type = resolveType(from);
-        to = target[key];
+		to = target[key];
 
 		if (type === 'number')
-        	from = resolveRelativeValue(from, to);
+			from = resolveRelativeValue(from, to);
 
-    } else {
+	} else {
 
 		type = resolveType(from);
 	}
 
-    let fx = override ||
+	let fx =
 		type === 'number' ? (x => from + (to - from) * ease(x)) :
 		type === 'hexColor' ? (x => interpolateRRGGBB(from, to, ease(x))) :
 		() => {};
 
-    return [target, key, fx]
-
+	return [target, key, fx]
 }
 
 
@@ -395,48 +438,26 @@ function resolveBundleEntry(target, key, from, to, ease, override) {
  */
 function resolveBundle(target, key, from, to, ease, override) {
 
-    let bundle, keys = key.includes(',') && key.split(',').map(s => s.trim());
+	let bundle, keys = key.includes(',') && key.split(',').map(s => s.trim());
 
-    if (!keys) {
+	if (!keys) {
 
-        bundle = resolveBundleEntry(target, key, from, to, ease, override);
+		bundle = resolveBundleEntry(target, key, from, to, ease, override);
 
-    } else {
+	} else {
 
-        bundle = keys.map((key, index) => {
+		bundle = keys.map((key, index) => {
 
-            let fromValue = Array.isArray(from) ? from[index] : from;
-            let toValue = Array.isArray(to) ? to[index] : to;
+			let fromValue = Array.isArray(from) ? from[index] : from;
+			let toValue = Array.isArray(to) ? to[index] : to;
 
-            return resolveBundleEntry(target, key, fromValue, toValue, ease, override)
+			return resolveBundleEntry(target, key, fromValue, toValue, ease, override)
 
-        });
-
-    }
-
-    return { isMultiple: !!keys, bundle }
-
-}
-
-/**
- * binded version of gain(), usage:
- * f = Mth.gainBind(3, 1/3)
- * y = f(x)
- */
-function gainBind(p = 3, i = .5, clamp = true) {
-
-	return x => {
-
-		if (clamp)
-			x = x < 0 ? 0 : x > 1 ? 1 : x;
-
-		return x === i
-			? x
-			: x < i
-			? 1 / Math.pow(i, p - 1) * Math.pow(x, p)
-			: 1 - 1 / Math.pow(1 - i, p - 1) * Math.pow(1 - x, p)
+		});
 
 	}
+
+	return { isMultiple: !!keys, bundle }
 
 }
 

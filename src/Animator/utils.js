@@ -127,6 +127,9 @@ function interpolateRRGGBB(color1, color2, x, { prependHash = true} = {}) {
 
 export function resolveBundleEntry(target, key, from, to, ease, override) {
 
+	if (override)
+		return [target, key, override]
+
     let type = null
 
     if (to !== undefined && from === undefined) {
@@ -150,13 +153,12 @@ export function resolveBundleEntry(target, key, from, to, ease, override) {
 		type = resolveType(from)
 	}
 
-    let fx = override ||
+    let fx =
 		type === 'number' ? (x => from + (to - from) * ease(x)) :
 		type === 'hexColor' ? (x => interpolateRRGGBB(from, to, ease(x))) :
 		() => {}
 
     return [target, key, fx]
-
 }
 
 

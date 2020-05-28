@@ -1,51 +1,51 @@
 export default class Stack {
 
-    constructor() {
+	constructor() {
 
-        this.array = []
-        this.frame = 0
+		this.array = []
+		this.frame = 0
 
-    }
+	}
 
-    update() {
+	update() {
 
-        let { array, frame } = this
+		let { array, frame } = this
 
-        let tmp = this.array
-    	this.array = []
-    	this.array = tmp.filter(({ callback, thisArg, args, skip }) => {
+		let tmp = this.array
+		this.array = []
+		this.array = tmp.filter(({ callback, thisArg, args, skip }) => {
 
-    		if (frame % (1 + skip))
-    			return true
+			if (frame % (1 + skip))
+				return true
 
-    		return callback.apply(thisArg, args) !== false
+			return callback.apply(thisArg, args) !== false
 
-    	}).concat(this.array)
+		}).concat(this.array)
 
-        frame++
+		frame++
 
-        Object.assign(this, { frame })
+		Object.assign(this, { frame })
 
-    }
+	}
 
-    add(callback, { thisArg = null, args = null, skip = 0 } = {}) {
+	add(callback, { thisArg = null, args = null, skip = 0 } = {}) {
 
-    	if (!callback)
-    		return
+		if (!callback)
+			return
 
-    	let listener = {
+		let listener = {
 
-    		callback,
-    		thisArg,
-            args,
-    		skip,
+			callback,
+			thisArg,
+			args,
+			skip,
 
-    	}
+		}
 
-    	this.array.push(listener)
+		this.array.push(listener)
 
-    	return listener
+		return listener
 
-    }
+	}
 
 }

@@ -1,146 +1,146 @@
 
 export default class KeyMap {
 
-    constructor() {
+	constructor() {
 
-        this.map = new Map()
+		this.map = new Map()
 
-    }
+	}
 
-    get size() { return this.map.size }
+	get size() { return this.map.size }
 
-    has(target, key) {
+	has(target, key) {
 
-        let dict = this.map.get(target)
+		let dict = this.map.get(target)
 
-        return !!(dict && key in dict)
+		return !!(dict && key in dict)
 
-    }
+	}
 
-    set(target, key, object) {
+	set(target, key, object) {
 
-        let dict = this.map.get(target)
+		let dict = this.map.get(target)
 
-        if (dict) {
+		if (dict) {
 
-            dict[key] = object
+			dict[key] = object
 
-        } else {
+		} else {
 
-            this.map.set(target, { [key]: object })
+			this.map.set(target, { [key]: object })
 
-        }
+		}
 
-    }
+	}
 
-    assign(target, key, props) {
+	assign(target, key, props) {
 
-        let object = this.get(target, key, { create: true })
+		let object = this.get(target, key, { create: true })
 
-        Object.assign(object, props)
+		Object.assign(object, props)
 
-    }
+	}
 
-    get(target, key, { create = false } = {}) {
+	get(target, key, { create = false } = {}) {
 
-        let dict = this.map.get(target)
+		let dict = this.map.get(target)
 
-        if (!dict && !create)
-            return undefined
+		if (!dict && !create)
+			return undefined
 
-        if (!dict) {
+		if (!dict) {
 
-            dict = {}
-            this.map.set(target, dict)
+			dict = {}
+			this.map.set(target, dict)
 
-        }
+		}
 
-        let value = dict[key]
+		let value = dict[key]
 
-        if (!value && !create)
-            return undefined
+		if (!value && !create)
+			return undefined
 
-        if (!value) {
+		if (!value) {
 
-            value = {}
-            dict[key] = value
+			value = {}
+			dict[key] = value
 
-        }
+		}
 
-        return value
+		return value
 
-    }
+	}
 
-    delete (target, key) {
+	delete (target, key) {
 
-        let dict = this.map.get(target)
+		let dict = this.map.get(target)
 
-        if (dict) {
+		if (dict) {
 
-            delete dict[key]
+			delete dict[key]
 
-            if (Object.keys(dict).length === 0)
-                this.map.delete(target)
+			if (Object.keys(dict).length === 0)
+				this.map.delete(target)
 
-        }
+		}
 
-    }
+	}
 
-    *[Symbol.iterator]() {
+	*[Symbol.iterator]() {
 
-        for (let [target, dict] of this.map) {
+		for (let [target, dict] of this.map) {
 
-            for (let key in dict)
-                yield [target, key, dict[key]]
+			for (let key in dict)
+				yield [target, key, dict[key]]
 
-        }
+		}
 
-    }
+	}
 
-    entries(target = null, key = null) {
+	entries(target = null, key = null) {
 
-        let entries = []
+		let entries = []
 
-    	for (let [currentTarget, dict] of this.map) {
+		for (let [currentTarget, dict] of this.map) {
 
-    		if (!target || target === currentTarget) {
+			if (!target || target === currentTarget) {
 
-                for (let currentKey in dict) {
+				for (let currentKey in dict) {
 
-    				if (!key || key === currentKey)
-                        entries.push([currentTarget, currentKey, dict[currentKey]])
+					if (!key || key === currentKey)
+						entries.push([currentTarget, currentKey, dict[currentKey]])
 
-    			}
+				}
 
-    		}
+			}
 
-    	}
+		}
 
-    	return entries
+		return entries
 
-    }
+	}
 
-    values(target = null, key = null) {
+	values(target = null, key = null) {
 
-        let values = []
+		let values = []
 
-        for (let [currentTarget, dict] of this.map) {
+		for (let [currentTarget, dict] of this.map) {
 
-            if (!target || target === currentTarget) {
+			if (!target || target === currentTarget) {
 
-                for (let currentKey in dict) {
+				for (let currentKey in dict) {
 
-                    if (!key || key === currentKey)
-                        values.push(dict[currentKey])
+					if (!key || key === currentKey)
+						values.push(dict[currentKey])
 
-                }
+				}
 
-            }
+			}
 
-        }
+		}
 
-        return values
+		return values
 
-    }
+	}
 
 }

@@ -2,15 +2,15 @@ import * as Ease from './Ease.js'
 
 export function parseNumber(s) {
 
-    if (s.includes('/')) {
+	if (s.includes('/')) {
 
-        let [a, b] = s.split('/')
+		let [a, b] = s.split('/')
 
-        return parseFloat(a) / parseFloat(b)
+		return parseFloat(a) / parseFloat(b)
 
-    }
+	}
 
-    return parseFloat(s)
+	return parseFloat(s)
 
 }
 
@@ -129,35 +129,35 @@ export function resolveBundleEntry(target, key, from, to, ease, override) {
 	if (override)
 		return [target, key, override]
 
-    let type = null
+	let type = null
 
-    if (to !== undefined && from === undefined) {
+	if (to !== undefined && from === undefined) {
 
 		type = resolveType(to)
-        from = target[key]
+		from = target[key]
 
 		if (type === 'number')
-        	to = resolveRelativeValue(to, from)
+			to = resolveRelativeValue(to, from)
 
-    } else if (to === undefined && from !== undefined) {
+	} else if (to === undefined && from !== undefined) {
 
 		type = resolveType(from)
-        to = target[key]
+		to = target[key]
 
 		if (type === 'number')
-        	from = resolveRelativeValue(from, to)
+			from = resolveRelativeValue(from, to)
 
-    } else {
+	} else {
 
 		type = resolveType(from)
 	}
 
-    let fx =
+	let fx =
 		type === 'number' ? (x => from + (to - from) * ease(x)) :
 		type === 'hexColor' ? (x => interpolateRRGGBB(from, to, ease(x))) :
 		() => {}
 
-    return [target, key, fx]
+	return [target, key, fx]
 }
 
 
@@ -168,26 +168,26 @@ export function resolveBundleEntry(target, key, from, to, ease, override) {
  */
 export function resolveBundle(target, key, from, to, ease, override) {
 
-    let bundle, keys = key.includes(',') && key.split(',').map(s => s.trim())
+	let bundle, keys = key.includes(',') && key.split(',').map(s => s.trim())
 
-    if (!keys) {
+	if (!keys) {
 
-        bundle = resolveBundleEntry(target, key, from, to, ease, override)
+		bundle = resolveBundleEntry(target, key, from, to, ease, override)
 
-    } else {
+	} else {
 
-        bundle = keys.map((key, index) => {
+		bundle = keys.map((key, index) => {
 
-            let fromValue = Array.isArray(from) ? from[index] : from
-            let toValue = Array.isArray(to) ? to[index] : to
+			let fromValue = Array.isArray(from) ? from[index] : from
+			let toValue = Array.isArray(to) ? to[index] : to
 
-            return resolveBundleEntry(target, key, fromValue, toValue, ease, override)
+			return resolveBundleEntry(target, key, fromValue, toValue, ease, override)
 
-        })
+		})
 
-    }
+	}
 
-    return { isMultiple: !!keys, bundle }
+	return { isMultiple: !!keys, bundle }
 
 }
 
@@ -224,5 +224,5 @@ export function gain(x, p = 3, i = .5, clamp = true) {
  * y = f(x)
  */
 export const gainBind = (p = 3, i = .5, clamp = true) => (
-    x => gain(x, p, i, clamp)
+	x => gain(x, p, i, clamp)
 )

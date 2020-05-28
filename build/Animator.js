@@ -1,7 +1,7 @@
 /*
 
 	Animator.js
-	2020-05-28 11:04 GMT(+2)
+	2020-05-28 11:05 GMT(+2)
 	https://github.com/jniac/js-animator
 
 	MIT License
